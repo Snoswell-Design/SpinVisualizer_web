@@ -1,6 +1,7 @@
 import * as BABYLON from 'babylonjs';
 import * as dat from 'dat.gui';
 import { SpinorShader } from './shader';
+import { Meshes } from './meshes';
 
 export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
   var oldgui = document.getElementById("datGUI");
@@ -18,18 +19,36 @@ export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
     radius: 5.0,
     power: 1.5,
     center: 2.0,
-    sphere: false,
-    sphereRadius: 1.0,
-    xaxis: false,
-    yaxis: false,
-    zaxis: false,
-    xyplane: false,
-    xzplane: false,
-    yzplane: false,
+    "Sphere": false,
+    "Sphere Radius": 1.0,
+    "X Axis": false,
+    "Y Axis": false,
+    "Z Axis": false,
+    "XY Plane": false,
+    "XZ Plane": false,
+    "YZ Plane": false,
+    "XY Quarter": false,
+    "XZ Quarter": false,
+    "YZ Quarter": false,
     field: false,
+    "Ring 1": "Off",
+    "Ring 1 Radius": 1.0,
+    "Ring 2": "Off",
+    "Ring 2 Radius": 1.0,
+    "Ring 3": "Off",
+    "Ring 3 Radius": 1.0,
+    "Cage 1": false,
+    "Cage 1 Radius": 1.0,
+    "Cage 2": false,
+    "Cage 2 Radius": 1.0,
+    "Cage 3": false,
+    "Cage 3 Radius": 1.0,
   }
   let meshes: Record<string, any> = {};
-  let controllers : Record<string, dat.Controller> = {};
+  let controllers : Record<string, dat.GUIController> = {};
+
+  var meshClass = new Meshes();
+  meshClass.material = shader.shader;
 
 
   let spinSettings = gui.addFolder("Spin settings")
@@ -48,9 +67,9 @@ export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
   });
 
 
-  controllers.radius = spinSettings.add(options, "radius", 1, 10, 0.5).onChange((value) => {
-    shader.radius = value;
-  });
+  //controllers.radius = spinSettings.add(options, "radius", 1, 10, 0.5).onChange((value) => {
+  //  shader.radius = value;
+  //});
   controllers.power = spinSettings.add(options, "power", 0.1, 3, 0.1).onChange((value) => {
     shader.power = value;
   });
@@ -58,138 +77,8 @@ export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
     shader.center = value;
   });
 
-  let objects = gui.addFolder("Objects")
+  var objects = gui.addFolder("Objects");
 
-  controllers.sphere = objects.add(options, "sphere").onChange((value: any) => {
-    let sphere = meshes.sphere;
-    if (value && sphere == null) {
-      sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { segments: 32, diameter: 1}, scene);
-      let scale = options.sphereRadius;
-      sphere.scaling = new BABYLON.Vector3(scale, scale, scale);
-      sphere.material = shader.shader;
-      meshes.sphere = sphere;
-    }
-    if (!value && sphere != null) {
-      sphere.dispose();
-      delete meshes.sphere;
-    }
-  });
-
-  controllers.sphereRadius = objects.add(options, "sphereRadius", 0.1, 10, 0.1).onChange((value) => {
-    let sphere = meshes.sphere;
-    if (sphere != null) {
-      sphere.scaling = new BABYLON.Vector3(value, value, value);
-    }
-  });
-  
-  controllers.xaxis = objects.add(options, "xaxis").onChange((value) => {
-    let mesh = meshes.xAxis;
-    if (value && mesh == null) {
-      mesh = BABYLON.MeshBuilder.CreateCylinder('xAxis', { height: 10, diameter: 0.1, subdivisions: 100});
-      mesh.material = shader.shader;
-      mesh.rotation = new BABYLON.Vector3(0, 0, Math.PI / 2);
-      meshes.xAxis = mesh;
-    }
-    if (!value && mesh != null) {
-      mesh.dispose();
-      delete meshes.xAxis;
-    }
-  });
-
-  controllers.yaxis = objects.add(options, "yaxis").onChange((value) => {
-    let mesh = meshes.yAxis;
-    if (value && mesh == null) {
-      mesh = BABYLON.MeshBuilder.CreateCylinder('yAxis', { height: 10, diameter: 0.1, subdivisions: 100});
-      mesh.material = shader.shader;
-      mesh.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
-      meshes.yAxis = mesh;
-    }
-    if (!value && mesh != null) {
-      mesh.dispose();
-      delete meshes.yAxis;
-    }
-  });
-
-  controllers.zaxis = objects.add(options, "zaxis").onChange((value) => {
-    let mesh = meshes.zAxis;
-    if (value && mesh == null) {
-      mesh = BABYLON.MeshBuilder.CreateCylinder('zAxis', { height: 10, diameter: 0.1, subdivisions: 100});
-      mesh.material = shader.shader;
-      meshes.zAxis = mesh;
-    }
-    if (!value && mesh != null) {
-      mesh.dispose();
-      delete meshes.zAxis;
-    }
-  });
-
-  controllers.xyplane = objects.add(options, "xyplane").onChange((value) => {
-    let mesh : Array<BABYLON.AbstractMesh> = meshes.xyplane;
-    if (value && mesh == null) {
-      mesh = Array(2);
-      let m1 = BABYLON.MeshBuilder.CreateGround('xyplane', { width: 10, height: 10, subdivisions: 100 }, scene)
-      m1.position = new BABYLON.Vector3(0, 0.01, 0);
-      m1.material = shader.shader;
-      //m1.visibility = 0;
-      let m2 = m1.createInstance('xyplane_back');
-      m2.rotation = new BABYLON.Vector3(Math.PI, 0, 0);
-      m2.position = new BABYLON.Vector3(0, -0.01, 0);
-      mesh[0] = m1;
-      mesh[1] = m2;
-      meshes.xyplane = mesh;
-    }
-    if (!value && mesh != null) {
-      for (let m of mesh) {
-        m.dispose();
-      }
-      delete meshes.xyplane;
-    }
-  });
-  controllers.xzplane = objects.add(options, "xzplane").onChange((value) => {
-    let mesh : Array<BABYLON.AbstractMesh> = meshes.xzplane;
-    if (value && mesh == null) {
-      mesh = Array(2);
-      let m1 = BABYLON.MeshBuilder.CreateGround('xzplane', { width: 10, height: 10, subdivisions: 100 }, scene)
-      m1.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
-      m1.position = new BABYLON.Vector3(0, 0, 0.01);
-      m1.material = shader.shader;
-      //m1.visibility = 0;
-      let m2 = m1.createInstance('xzplane_back');
-      m2.rotation = new BABYLON.Vector3(Math.PI / 2, Math.PI, 0);
-      m2.position = new BABYLON.Vector3(0, 0, -0.01);
-      mesh[0] = m1;
-      mesh[1] = m2;
-      meshes.xzplane = mesh;
-    }
-    if (!value && mesh != null) {
-      for (let m of mesh) {
-        m.dispose();
-      }
-      delete meshes.xzplane;
-    }
-  });
-  controllers.yzplane = objects.add(options, "yzplane").onChange((value) => {
-    let mesh : Array<BABYLON.AbstractMesh> = meshes.yzplane;
-    if (value && mesh == null) {
-      mesh = Array(2);
-      let m1 = BABYLON.MeshBuilder.CreateGround('yzplane', { width: 10, height: 10, subdivisions: 100 }, scene)
-      m1.rotation = new BABYLON.Vector3(0, 0, Math.PI / 2);
-      m1.position = new BABYLON.Vector3(0.01, 0, 0);
-      m1.material = shader.shader;
-      let m2 = m1.createInstance('yzplane_back');
-      m2.rotation = new BABYLON.Vector3(0, Math.PI, Math.PI / 2);
-      m2.position = new BABYLON.Vector3(-0.01, 0, 0);
-      mesh[0] = m1;
-      mesh[1] = m2;
-      meshes.yzplane = mesh;
-    }
-    if (!value && mesh != null) {
-      for (let m of mesh) {
-        m.dispose();
-      }
-      delete meshes.yzplane;
-    }
-  });
   controllers.field = objects.add(options, "field").onChange((value) => {
     var mesh : Array<BABYLON.Mesh> = meshes.field;
     if (value && mesh == null) {
@@ -216,8 +105,68 @@ export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
     }
   });
 
-  controllers.sphere.setValue(true);
-  controllers.xaxis.setValue(true);
-  controllers.yaxis.setValue(true);
-  controllers.zaxis.setValue(true);
+  function onOffControl(option:string, meshname:string) {
+    controllers[option] = objects.add(options, option).onChange((value) => {
+      meshClass[meshname].isVisible = value;
+    });
+  }
+
+  onOffControl("X Axis", "xAxis");
+  onOffControl("Y Axis", "yAxis");
+  onOffControl("Z Axis", "zAxis");
+  onOffControl("XY Plane", "xyPlane");
+  onOffControl("XZ Plane", "xzPlane");
+  onOffControl("YZ Plane", "yzPlane");
+  onOffControl("XY Quarter", "xyQuarter");
+  onOffControl("XZ Quarter", "xzQuarter");
+  onOffControl("YZ Quarter", "yzQuarter");
+
+  function radiusControl(option:string, meshname:string) {
+    controllers[option] = objects.add(options, option).onChange((value) => {
+        meshClass[meshname].isVisible = value;
+    });
+    controllers[option + "Radius"] = objects.add(options, option + " Radius", 0.1, 10, 0.1).onChange((value) => {
+      meshClass[meshname].scaling = new BABYLON.Vector3(value, value, value);
+    });
+  }
+
+  radiusControl("Sphere", "sphere");
+  radiusControl("Cage 1", "cage1");
+  radiusControl("Cage 2", "cage2");
+  radiusControl("Cage 3", "cage3");
+
+  function ringControl(option:string, meshname:string) {
+    controllers[option] = objects.add(options, option, ["Off", "XY", "XZ", "YZ"]).onChange((value) => {
+      switch (value) {
+        case "XY":
+          meshClass[meshname].isVisible = true;
+          meshClass[meshname].rotation = new BABYLON.Vector3(0, 0, 0);
+          break;
+        case "XZ":
+          meshClass[meshname].isVisible = true;
+          meshClass[meshname].rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+          break;
+        case "YZ":
+          meshClass[meshname].isVisible = true;
+          meshClass[meshname].rotation = new BABYLON.Vector3(0, Math.PI / 2, 0);
+          break;
+        default:
+          meshClass[meshname].isVisible = false;
+          break;
+      }
+    });
+    controllers[option + "Radius"] = objects.add(options, option + " Radius", 0.1, 10, 0.1).onChange((value) => {
+      meshClass[meshname].scaling = new BABYLON.Vector3(value, value, value);
+    });
+  }
+
+  ringControl("Ring 1", "ring1");
+  ringControl("Ring 2", "ring2");
+  ringControl("Ring 3", "ring3");
+
+
+  controllers["Sphere"].setValue(true);
+  controllers["X Axis"].setValue(true);
+  controllers["Y Axis"].setValue(true);
+  controllers["Z Axis"].setValue(true);
 }

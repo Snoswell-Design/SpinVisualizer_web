@@ -23,9 +23,9 @@ export class SpinorShader {
     this.kernelPhases = new Float32Array(numKernels);
     this.time = 0;
     this.speed = 1;
-    this.radius = 5;
+    this.radius = 10;
     this.power = 1.5;
-    this.center = 2;
+    this.center = 1.3;
 
     this.shader = new CustomMaterial("spinorMaterial", scene);
     this.shader.AddUniform('numSteps', 'int', numKernels + 1);

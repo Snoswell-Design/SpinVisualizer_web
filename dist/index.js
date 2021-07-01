@@ -2607,6 +2607,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.makeGUI = void 0;
 var BABYLON = __webpack_require__(/*! babylonjs */ "./node_modules/babylonjs/babylon.js");
 var dat = __webpack_require__(/*! dat.gui */ "./node_modules/dat.gui/build/dat.gui.module.js");
+var meshes_1 = __webpack_require__(/*! ./meshes */ "./meshes.ts");
 function makeGUI(scene, shader) {
     var oldgui = document.getElementById("datGUI");
     if (oldgui != null) {
@@ -2621,18 +2622,35 @@ function makeGUI(scene, shader) {
         radius: 5.0,
         power: 1.5,
         center: 2.0,
-        sphere: false,
-        sphereRadius: 1.0,
-        xaxis: false,
-        yaxis: false,
-        zaxis: false,
-        xyplane: false,
-        xzplane: false,
-        yzplane: false,
+        "Sphere": false,
+        "Sphere Radius": 1.0,
+        "X Axis": false,
+        "Y Axis": false,
+        "Z Axis": false,
+        "XY Plane": false,
+        "XZ Plane": false,
+        "YZ Plane": false,
+        "XY Quarter": false,
+        "XZ Quarter": false,
+        "YZ Quarter": false,
         field: false,
+        "Ring 1": "Off",
+        "Ring 1 Radius": 1.0,
+        "Ring 2": "Off",
+        "Ring 2 Radius": 1.0,
+        "Ring 3": "Off",
+        "Ring 3 Radius": 1.0,
+        "Cage 1": false,
+        "Cage 1 Radius": 1.0,
+        "Cage 2": false,
+        "Cage 2 Radius": 1.0,
+        "Cage 3": false,
+        "Cage 3 Radius": 1.0,
     };
     var meshes = {};
     var controllers = {};
+    var meshClass = new meshes_1.Meshes();
+    meshClass.material = shader.shader;
     var spinSettings = gui.addFolder("Spin settings");
     controllers.speed = spinSettings.add(options, "speed", 0, 5, 0.1).onChange(function (value) {
         shader.speed = value;
@@ -2645,9 +2663,9 @@ function makeGUI(scene, shader) {
     controllers.time.onChange(function (value) {
         shader.time = value * Math.PI * 2;
     });
-    controllers.radius = spinSettings.add(options, "radius", 1, 10, 0.5).onChange(function (value) {
-        shader.radius = value;
-    });
+    //controllers.radius = spinSettings.add(options, "radius", 1, 10, 0.5).onChange((value) => {
+    //  shader.radius = value;
+    //});
     controllers.power = spinSettings.add(options, "power", 0.1, 3, 0.1).onChange(function (value) {
         shader.power = value;
     });
@@ -2655,134 +2673,6 @@ function makeGUI(scene, shader) {
         shader.center = value;
     });
     var objects = gui.addFolder("Objects");
-    controllers.sphere = objects.add(options, "sphere").onChange(function (value) {
-        var sphere = meshes.sphere;
-        if (value && sphere == null) {
-            sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { segments: 32, diameter: 1 }, scene);
-            var scale = options.sphereRadius;
-            sphere.scaling = new BABYLON.Vector3(scale, scale, scale);
-            sphere.material = shader.shader;
-            meshes.sphere = sphere;
-        }
-        if (!value && sphere != null) {
-            sphere.dispose();
-            delete meshes.sphere;
-        }
-    });
-    controllers.sphereRadius = objects.add(options, "sphereRadius", 0.1, 10, 0.1).onChange(function (value) {
-        var sphere = meshes.sphere;
-        if (sphere != null) {
-            sphere.scaling = new BABYLON.Vector3(value, value, value);
-        }
-    });
-    controllers.xaxis = objects.add(options, "xaxis").onChange(function (value) {
-        var mesh = meshes.xAxis;
-        if (value && mesh == null) {
-            mesh = BABYLON.MeshBuilder.CreateCylinder('xAxis', { height: 10, diameter: 0.1, subdivisions: 100 });
-            mesh.material = shader.shader;
-            mesh.rotation = new BABYLON.Vector3(0, 0, Math.PI / 2);
-            meshes.xAxis = mesh;
-        }
-        if (!value && mesh != null) {
-            mesh.dispose();
-            delete meshes.xAxis;
-        }
-    });
-    controllers.yaxis = objects.add(options, "yaxis").onChange(function (value) {
-        var mesh = meshes.yAxis;
-        if (value && mesh == null) {
-            mesh = BABYLON.MeshBuilder.CreateCylinder('yAxis', { height: 10, diameter: 0.1, subdivisions: 100 });
-            mesh.material = shader.shader;
-            mesh.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
-            meshes.yAxis = mesh;
-        }
-        if (!value && mesh != null) {
-            mesh.dispose();
-            delete meshes.yAxis;
-        }
-    });
-    controllers.zaxis = objects.add(options, "zaxis").onChange(function (value) {
-        var mesh = meshes.zAxis;
-        if (value && mesh == null) {
-            mesh = BABYLON.MeshBuilder.CreateCylinder('zAxis', { height: 10, diameter: 0.1, subdivisions: 100 });
-            mesh.material = shader.shader;
-            meshes.zAxis = mesh;
-        }
-        if (!value && mesh != null) {
-            mesh.dispose();
-            delete meshes.zAxis;
-        }
-    });
-    controllers.xyplane = objects.add(options, "xyplane").onChange(function (value) {
-        var mesh = meshes.xyplane;
-        if (value && mesh == null) {
-            mesh = Array(2);
-            var m1 = BABYLON.MeshBuilder.CreateGround('xyplane', { width: 10, height: 10, subdivisions: 100 }, scene);
-            m1.position = new BABYLON.Vector3(0, 0.01, 0);
-            m1.material = shader.shader;
-            //m1.visibility = 0;
-            var m2 = m1.createInstance('xyplane_back');
-            m2.rotation = new BABYLON.Vector3(Math.PI, 0, 0);
-            m2.position = new BABYLON.Vector3(0, -0.01, 0);
-            mesh[0] = m1;
-            mesh[1] = m2;
-            meshes.xyplane = mesh;
-        }
-        if (!value && mesh != null) {
-            for (var _i = 0, mesh_1 = mesh; _i < mesh_1.length; _i++) {
-                var m = mesh_1[_i];
-                m.dispose();
-            }
-            delete meshes.xyplane;
-        }
-    });
-    controllers.xzplane = objects.add(options, "xzplane").onChange(function (value) {
-        var mesh = meshes.xzplane;
-        if (value && mesh == null) {
-            mesh = Array(2);
-            var m1 = BABYLON.MeshBuilder.CreateGround('xzplane', { width: 10, height: 10, subdivisions: 100 }, scene);
-            m1.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
-            m1.position = new BABYLON.Vector3(0, 0, 0.01);
-            m1.material = shader.shader;
-            //m1.visibility = 0;
-            var m2 = m1.createInstance('xzplane_back');
-            m2.rotation = new BABYLON.Vector3(Math.PI / 2, Math.PI, 0);
-            m2.position = new BABYLON.Vector3(0, 0, -0.01);
-            mesh[0] = m1;
-            mesh[1] = m2;
-            meshes.xzplane = mesh;
-        }
-        if (!value && mesh != null) {
-            for (var _i = 0, mesh_2 = mesh; _i < mesh_2.length; _i++) {
-                var m = mesh_2[_i];
-                m.dispose();
-            }
-            delete meshes.xzplane;
-        }
-    });
-    controllers.yzplane = objects.add(options, "yzplane").onChange(function (value) {
-        var mesh = meshes.yzplane;
-        if (value && mesh == null) {
-            mesh = Array(2);
-            var m1 = BABYLON.MeshBuilder.CreateGround('yzplane', { width: 10, height: 10, subdivisions: 100 }, scene);
-            m1.rotation = new BABYLON.Vector3(0, 0, Math.PI / 2);
-            m1.position = new BABYLON.Vector3(0.01, 0, 0);
-            m1.material = shader.shader;
-            var m2 = m1.createInstance('yzplane_back');
-            m2.rotation = new BABYLON.Vector3(0, Math.PI, Math.PI / 2);
-            m2.position = new BABYLON.Vector3(-0.01, 0, 0);
-            mesh[0] = m1;
-            mesh[1] = m2;
-            meshes.yzplane = mesh;
-        }
-        if (!value && mesh != null) {
-            for (var _i = 0, mesh_3 = mesh; _i < mesh_3.length; _i++) {
-                var m = mesh_3[_i];
-                m.dispose();
-            }
-            delete meshes.yzplane;
-        }
-    });
     controllers.field = objects.add(options, "field").onChange(function (value) {
         var mesh = meshes.field;
         if (value && mesh == null) {
@@ -2802,19 +2692,223 @@ function makeGUI(scene, shader) {
             meshes.field = mesh;
         }
         if (!value && mesh != null) {
-            for (var _i = 0, mesh_4 = mesh; _i < mesh_4.length; _i++) {
-                var m = mesh_4[_i];
+            for (var _i = 0, mesh_1 = mesh; _i < mesh_1.length; _i++) {
+                var m = mesh_1[_i];
                 m.dispose();
             }
             delete meshes.field;
         }
     });
-    controllers.sphere.setValue(true);
-    controllers.xaxis.setValue(true);
-    controllers.yaxis.setValue(true);
-    controllers.zaxis.setValue(true);
+    function onOffControl(option, meshname) {
+        controllers[option] = objects.add(options, option).onChange(function (value) {
+            meshClass[meshname].isVisible = value;
+        });
+    }
+    onOffControl("X Axis", "xAxis");
+    onOffControl("Y Axis", "yAxis");
+    onOffControl("Z Axis", "zAxis");
+    onOffControl("XY Plane", "xyPlane");
+    onOffControl("XZ Plane", "xzPlane");
+    onOffControl("YZ Plane", "yzPlane");
+    onOffControl("XY Quarter", "xyQuarter");
+    onOffControl("XZ Quarter", "xzQuarter");
+    onOffControl("YZ Quarter", "yzQuarter");
+    function radiusControl(option, meshname) {
+        controllers[option] = objects.add(options, option).onChange(function (value) {
+            meshClass[meshname].isVisible = value;
+        });
+        controllers[option + "Radius"] = objects.add(options, option + " Radius", 0.1, 10, 0.1).onChange(function (value) {
+            meshClass[meshname].scaling = new BABYLON.Vector3(value, value, value);
+        });
+    }
+    radiusControl("Sphere", "sphere");
+    radiusControl("Cage 1", "cage1");
+    radiusControl("Cage 2", "cage2");
+    radiusControl("Cage 3", "cage3");
+    function ringControl(option, meshname) {
+        controllers[option] = objects.add(options, option, ["Off", "XY", "XZ", "YZ"]).onChange(function (value) {
+            switch (value) {
+                case "XY":
+                    meshClass[meshname].isVisible = true;
+                    meshClass[meshname].rotation = new BABYLON.Vector3(0, 0, 0);
+                    break;
+                case "XZ":
+                    meshClass[meshname].isVisible = true;
+                    meshClass[meshname].rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+                    break;
+                case "YZ":
+                    meshClass[meshname].isVisible = true;
+                    meshClass[meshname].rotation = new BABYLON.Vector3(0, Math.PI / 2, 0);
+                    break;
+                default:
+                    meshClass[meshname].isVisible = false;
+                    break;
+            }
+        });
+        controllers[option + "Radius"] = objects.add(options, option + " Radius", 0.1, 10, 0.1).onChange(function (value) {
+            meshClass[meshname].scaling = new BABYLON.Vector3(value, value, value);
+        });
+    }
+    ringControl("Ring 1", "ring1");
+    ringControl("Ring 2", "ring2");
+    ringControl("Ring 3", "ring3");
+    controllers["Sphere"].setValue(true);
+    controllers["X Axis"].setValue(true);
+    controllers["Y Axis"].setValue(true);
+    controllers["Z Axis"].setValue(true);
 }
 exports.makeGUI = makeGUI;
+
+
+/***/ }),
+
+/***/ "./meshes.ts":
+/*!*******************!*\
+  !*** ./meshes.ts ***!
+  \*******************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Meshes = void 0;
+var BABYLON = __webpack_require__(/*! babylonjs */ "./node_modules/babylonjs/babylon.js");
+var Meshes = /** @class */ (function () {
+    function Meshes() {
+        this.meshlist = [];
+        this.makeMesh("sphere", this.makeSphere(new BABYLON.Color4(0.8, 0.4, 0.4, 1), new BABYLON.Color4(0.2, 0, 0, 1)));
+        this.makeMesh("xAxis", this.makeAxis(new BABYLON.Vector3(0, 0, 0)), new BABYLON.Color4(1, 0, 0, 1));
+        this.makeMesh("yAxis", this.makeAxis(new BABYLON.Vector3(0, 0, Math.PI / 2)), new BABYLON.Color4(0, 1, 0, 1));
+        this.makeMesh("zAxis", this.makeAxis(new BABYLON.Vector3(0, Math.PI / 2, 0)), new BABYLON.Color4(0, 0, 1, 1));
+        this.makeMesh("xyPlane", this.makePlane(new BABYLON.Vector3(0, 0, 0)), new BABYLON.Color4(1, 0.5, 0.5, 1));
+        this.makeMesh("xzPlane", this.makePlane(new BABYLON.Vector3(Math.PI / 2, 0, 0)), new BABYLON.Color4(0.5, 1, 0.5, 1));
+        this.makeMesh("yzPlane", this.makePlane(new BABYLON.Vector3(0, Math.PI / 2, 0)), new BABYLON.Color4(0.5, 0.5, 1, 1));
+        this.makeMesh("xyQuarter", this.makeQuarterPlane(new BABYLON.Vector3(0, 0, 0)), new BABYLON.Color4(1, 0.5, 0.5, 1));
+        this.makeMesh("xzQuarter", this.makeQuarterPlane(new BABYLON.Vector3(Math.PI / 2, 0, 0)), new BABYLON.Color4(0.5, 1, 0.5, 1));
+        this.makeMesh("yzQuarter", this.makeQuarterPlane(new BABYLON.Vector3(0, -Math.PI / 2, 0)), new BABYLON.Color4(0.5, 0.5, 1, 1));
+        this.makeMesh("ring1", this.makeRibbon(), new BABYLON.Color4(1, 0, 0, 1));
+        this.makeMesh("ring2", this.makeRibbon(), new BABYLON.Color4(0, 1, 0, 1));
+        this.makeMesh("ring3", this.makeRibbon(), new BABYLON.Color4(0, 0, 1, 1));
+        this.makeMesh("cage1", this.makeCage(), new BABYLON.Color4(1, 0, 0, 1));
+        this.makeMesh("cage2", this.makeCage(), new BABYLON.Color4(0, 1, 0, 1));
+        this.makeMesh("cage3", this.makeCage(), new BABYLON.Color4(0, 0, 1, 1));
+        this.makeMesh("outerCage", this.makeCage(100, 0.1, BABYLON.Mesh.FRONTSIDE), new BABYLON.Color4(1, 1, 1, 1));
+        this.outerCage.isVisible = true;
+        this.outerCage.scaling = new BABYLON.Vector3(10, 10, 10);
+    }
+    Meshes.prototype.makeMesh = function (name, vd, color) {
+        if (color != null) {
+            this.colorVertexData(vd, color);
+        }
+        var mesh = new BABYLON.Mesh(name, this.scene);
+        vd.applyToMesh(mesh);
+        mesh.isVisible = false;
+        this.meshlist.push(mesh);
+        this[name] = mesh;
+    };
+    Meshes.prototype.makeSphere = function (sphereColor, cageColor) {
+        // Combine a sphere and a cage so you can see it rotating
+        var vd1 = BABYLON.VertexData.CreateIcoSphere({ subdivisions: 6, flat: false });
+        this.colorVertexData(vd1, sphereColor);
+        var vd2 = this.makeCage();
+        this.colorVertexData(vd2, cageColor);
+        vd1.merge(vd2);
+        return vd1;
+    };
+    Meshes.prototype.makeAxis = function (rotation, segments) {
+        if (segments === void 0) { segments = 100; }
+        var vd = BABYLON.VertexData.CreateCylinder({ height: 20, diameter: 0.1, tessellation: 8, subdivisions: segments });
+        vd.transform(BABYLON.Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z + Math.PI / 2));
+        return vd;
+    };
+    Meshes.prototype.makeQuarterPlane = function (rotation, size, segments) {
+        if (size === void 0) { size = 10; }
+        if (segments === void 0) { segments = 50; }
+        // Using ribbon because babylon doesn't give you a nice subdivided plane that also can be doublesided
+        var paths = new Array(segments + 1);
+        for (var x = 0; x <= segments; x++) {
+            paths[x] = new Array(segments + 1);
+        }
+        for (var x = 0; x <= segments; x++) {
+            for (var y = 0; y <= segments; y++) {
+                paths[x][y] = new BABYLON.Vector3(x / segments * size, y / segments * size, 0);
+            }
+        }
+        var vd = BABYLON.VertexData.CreateRibbon({ pathArray: paths, sideOrientation: BABYLON.Mesh.DOUBLESIDE });
+        vd.transform(BABYLON.Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z));
+        return vd;
+    };
+    Meshes.prototype.makePlane = function (rotation, size, segments) {
+        if (size === void 0) { size = 20; }
+        if (segments === void 0) { segments = 100; }
+        // Using ribbon because babylon doesn't give you a nice subdivided plane that also can be doublesided
+        var paths = new Array(segments + 1);
+        for (var x = 0; x <= segments; x++) {
+            paths[x] = new Array(segments + 1);
+        }
+        for (var x = 0; x <= segments; x++) {
+            for (var y = 0; y <= segments; y++) {
+                paths[x][y] = new BABYLON.Vector3(x / segments * size - size / 2, y / segments * size - size / 2, 0);
+            }
+        }
+        var vd = BABYLON.VertexData.CreateRibbon({ pathArray: paths, sideOrientation: BABYLON.Mesh.DOUBLESIDE });
+        vd.transform(BABYLON.Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z));
+        return vd;
+    };
+    Meshes.prototype.makeRibbon = function (segments, width, sideOrientation) {
+        if (segments === void 0) { segments = 100; }
+        if (width === void 0) { width = 0.1; }
+        if (sideOrientation === void 0) { sideOrientation = BABYLON.Mesh.DOUBLESIDE; }
+        var path1 = new Array(segments);
+        var path2 = new Array(segments);
+        for (var i = 0; i < segments; i++) {
+            var rad = 2.0 * Math.PI * i / segments;
+            var x = Math.cos(rad);
+            var y = Math.sin(rad);
+            path1[i] = new BABYLON.Vector3(x, y, width / 2);
+            path2[i] = new BABYLON.Vector3(x, y, -width / 2);
+        }
+        var vd = BABYLON.VertexData.CreateRibbon({ pathArray: [path1, path2], closePath: true, sideOrientation: sideOrientation });
+        return vd;
+    };
+    Meshes.prototype.makeCage = function (segments, width, sideOrientation) {
+        if (segments === void 0) { segments = 100; }
+        if (width === void 0) { width = 0.1; }
+        if (sideOrientation === void 0) { sideOrientation = BABYLON.Mesh.DOUBLESIDE; }
+        var vd1 = this.makeRibbon(segments, width, sideOrientation);
+        var vd2 = this.makeRibbon(segments, width, sideOrientation);
+        vd2.transform(BABYLON.Matrix.RotationX(Math.PI / 2));
+        var vd3 = this.makeRibbon(segments, width, sideOrientation);
+        vd3.transform(BABYLON.Matrix.RotationY(Math.PI / 2));
+        vd1.merge(vd2);
+        vd1.merge(vd3);
+        return vd1;
+    };
+    Meshes.prototype.colorVertexData = function (vd, color) {
+        var l = vd.positions.length / 3;
+        var colorsUnfolded = new Array(l * 4);
+        for (var i = 0; i < l; i++) {
+            color.toArray(colorsUnfolded, i * 4);
+        }
+        vd.colors = colorsUnfolded;
+    };
+    Object.defineProperty(Meshes.prototype, "material", {
+        get: function () {
+            return this._material;
+        },
+        set: function (n) {
+            this._material = n;
+            for (var _i = 0, _a = this.meshlist; _i < _a.length; _i++) {
+                var mesh = _a[_i];
+                mesh.material = this._material;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return Meshes;
+}());
+exports.Meshes = Meshes;
 
 
 /***/ }),
@@ -2843,9 +2937,9 @@ var SpinorShader = /** @class */ (function () {
         this.kernelPhases = new Float32Array(numKernels);
         this.time = 0;
         this.speed = 1;
-        this.radius = 5;
+        this.radius = 10;
         this.power = 1.5;
-        this.center = 2;
+        this.center = 1.3;
         this.shader = new babylonjs_materials_1.CustomMaterial("spinorMaterial", scene);
         this.shader.AddUniform('numSteps', 'int', numKernels + 1);
         this.shader.AddUniform("steps", "mat4[" + (numKernels + 1) + "]", null);
@@ -2972,26 +3066,21 @@ var canvas = document.getElementById("renderCanvas");
 var engine = new BABYLON.Engine(canvas, true);
 var createScene = function () {
     var scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
     var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 4, Math.PI / 4, 20, BABYLON.Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
+    camera.upVector = new BABYLON.Vector3(0, 0, 1);
+    camera.wheelPrecision = 20;
+    camera.lowerRadiusLimit = 2;
+    camera.upperRadiusLimit = 30;
+    camera.lockedTarget = BABYLON.Vector3.Zero();
     var shader = new shader_1.SpinorShader(scene);
     var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
-    //var sphere = BABYLON.MeshBuilder.CreateSphere("Sphere", { diameter: 5}, scene);
-    //sphere.material = shader.shader;
-    //var box = BABYLON.MeshBuilder.CreateBox("Box", {size:1}, scene);
-    /*for (var x = 0; x <= 10; x++) {
-        for (var y = 0; y <= 10; y++) {
-            for (var z = 0; z <= 10; z++) {
-                var box = BABYLON.Mesh.CreateBox("Box", 0.1, scene);
-                box.material = shader.shader;
-                box.position = new BABYLON.Vector3(5-x,5-y,5-z);
-            }
-        }
-    }*/
     gui_1.makeGUI(scene, shader);
-    scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;
-    scene.fogStart = 10;
-    scene.fogEnd = 30;
+    //scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;
+    //scene.fogStart = 10;
+    //scene.fogEnd = 30;
+    //scene.fogColor = new BABYLON.Color3(0.9, 0.9, 0.9);
     return scene;
 };
 var scene = createScene();
