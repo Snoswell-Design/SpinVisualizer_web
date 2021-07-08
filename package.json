@@ -1,5 +1,4 @@
 {
-  "private": "true",
   "scripts": {
     "start": "webpack serve",
     "build": "webpack"
