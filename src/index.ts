@@ -7,6 +7,7 @@ const engine = new BABYLON.Engine(canvas, true);
 
 const createScene = function() {
   const scene = new BABYLON.Scene(engine);
+
   scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
   var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI/4, Math.PI/4, 20, BABYLON.Vector3.Zero(), scene);
   camera.attachControl(canvas, true);

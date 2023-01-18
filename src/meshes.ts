@@ -1,143 +1,204 @@
 import * as BABYLON from 'babylonjs';
+import { Vector3 } from 'babylonjs';
+import * as GUI from 'babylonjs-gui'
+
+function colorVertexData(vd:BABYLON.VertexData, color:BABYLON.Color4) {
+  var l = vd.positions.length / 3;
+  var colorsUnfolded = new Array<number>(l * 4);
+  for (var i = 0; i < l; i++) {
+    color.toArray(colorsUnfolded, i * 4);
+  }
+  vd.colors = colorsUnfolded;
+}
+
+export class MeshView {
+  prettyName: string;
+  mesh: BABYLON.Mesh;
+  hasRadius: boolean = false;
+  color: BABYLON.Color4;
+
+  constructor(scene:BABYLON.Scene, name: string, vd: BABYLON.VertexData, color?:BABYLON.Color4) {
+    this.prettyName = name;
+    if (color != null) {
+      colorVertexData(vd, color);
+      this.color = color;
+    } else {
+      this.color = new BABYLON.Color4(0,0,0,1);
+    }
+    this.mesh = new BABYLON.Mesh(name.toLowerCase().replace(' ', ''), scene);
+    vd.applyToMesh(this.mesh);
+    this.mesh.isVisible = false;
+  }
+
+  createControl() {
+    let colorHex = this.color.toHexString(true);
+
+    let c = new GUI.Checkbox(this.mesh.name + '_checkbox');
+    c.width = '20px';
+    c.height = '20px';
+    c.color = colorHex;
+    c.background = "white";
+    c.horizontalAlignment = 0; // left
+    c.onIsCheckedChangedObservable.add((visible:boolean) => {
+      this.mesh.isVisible = visible;
+    })
+
+    let h = new GUI.TextBlock(this.mesh.name + '_label');
+    h.text = this.prettyName;
+    h.height = '30px';
+    h.color = 'black';
+    h.textHorizontalAlignment = 0;
+    h.paddingLeftInPixels = 5;
+
+    let headerPanel = new GUI.StackPanel(this.mesh.name + '_header');
+    headerPanel.isVertical = false;
+    headerPanel.width = '100%';
+    headerPanel.adaptHeightToChildren = true;
+    headerPanel.addControl(c);
+    headerPanel.addControl(h);
+
+    let panel = new GUI.StackPanel(this.mesh.name + 'controls');
+    panel.setPaddingInPixels(5);
+    panel.addControl(headerPanel);
+
+    if (this.hasRadius) {
+      let s = new GUI.Slider(this.mesh.name + '_radius');
+      s.width = '100%';
+      s.height = '20px';
+      s.value = 0.1;
+      s.minimum = 0.1;
+      s.maximum = 10;
+      s.color = colorHex;
+      s.onValueChangedObservable.add((radius:number) => {
+        this.mesh.scaling = new BABYLON.Vector3(radius, radius, radius);
+        if (!c.isChecked) {
+          c.isChecked = true;
+        }
+      });
+      panel.addControl(s);
+    }
+
+    return panel;
+  }
+}
 
 export class Meshes {
   scene: BABYLON.Scene;
-
-  sphere: BABYLON.Mesh;
-  xAxis: BABYLON.Mesh;
-  yAxis: BABYLON.Mesh;
-  zAxis: BABYLON.Mesh;
-  xyPlane: BABYLON.Mesh;
-  xzPlane: BABYLON.Mesh;
-  yzPlane: BABYLON.Mesh;
-  xyQuarter: BABYLON.Mesh;
-  xzQuarter: BABYLON.Mesh;
-  yzQuarter: BABYLON.Mesh;
-  field: BABYLON.Mesh;
-  ring1: BABYLON.Mesh;
-  ring2: BABYLON.Mesh;
-  ring3: BABYLON.Mesh;
-  cage1: BABYLON.Mesh;
-  cage2: BABYLON.Mesh;
-  cage3: BABYLON.Mesh;
+  meshes: Array<MeshView> = [];
   outerCage: BABYLON.Mesh;
-
-  private meshlist: Array<BABYLON.Mesh> = [];
 
   private _material: BABYLON.Material;
 
   constructor() {
-    this.makeMesh(
-      "sphere",
+    this.makeMesh('Sphere',
       this.makeSphere(new BABYLON.Color4(0.8, 0.4, 0.4, 1), new BABYLON.Color4(0.2, 0, 0, 1)),
+      null,
+      true,
     );
-    this.makeMesh(
-      "xAxis",
-      this.makeAxis(new BABYLON.Vector3(0, 0, 0)),
+    this.makeMesh('X Axis',
+      this.makeAxis(new BABYLON.Vector3(0,0,0)),
       new BABYLON.Color4(1, 0, 0, 1),
     );
-    this.makeMesh(
-      "yAxis",
-      this.makeAxis(new BABYLON.Vector3(0, 0, Math.PI / 2)),
+    this.makeMesh('Y Axis',
+      this.makeAxis(new BABYLON.Vector3(0,0,Math.PI/2)),
       new BABYLON.Color4(0, 1, 0, 1),
     );
-    this.makeMesh(
-      "zAxis",
-      this.makeAxis(new BABYLON.Vector3(0, Math.PI / 2, 0)),
+    this.makeMesh('Z Axis',
+      this.makeAxis(new BABYLON.Vector3(Math.PI/2,0,0)),
       new BABYLON.Color4(0, 0, 1, 1),
     );
-    this.makeMesh(
-      "xyPlane",
+    this.makeMesh("XY Plane",
       this.makePlane(new BABYLON.Vector3(0, 0, 0)),
-      new BABYLON.Color4(1, 0.5, 0.5, 1),
-    );
-    this.makeMesh(
-      "xzPlane",
-      this.makePlane(new BABYLON.Vector3(Math.PI / 2, 0, 0)),
-      new BABYLON.Color4(0.5, 1, 0.5, 1),
-    );
-    this.makeMesh(
-      "yzPlane",
-      this.makePlane(new BABYLON.Vector3(0, Math.PI / 2, 0)),
       new BABYLON.Color4(0.5, 0.5, 1, 1),
     );
-    this.makeMesh(
-      "xyQuarter",
+    this.makeMesh("XZ Plane",
+      this.makePlane(new BABYLON.Vector3(0,Math.PI/2,0)),
+      new BABYLON.Color4(0.5, 1, 0.5, 1),
+    );
+    this.makeMesh("YZ Plane",
+      this.makePlane(new BABYLON.Vector3(Math.PI/2,0,0)),
+      new BABYLON.Color4(1, 0.5, 0.5, 1),
+    );
+    this.makeMesh("XY Quarter",
       this.makeQuarterPlane(new BABYLON.Vector3(0, 0, 0)),
-      new BABYLON.Color4(1, 0.5, 0.5, 1),
-    );
-    this.makeMesh(
-      "xzQuarter",
-      this.makeQuarterPlane(new BABYLON.Vector3(Math.PI / 2, 0, 0)),
-      new BABYLON.Color4(0.5, 1, 0.5, 1),
-    );
-    this.makeMesh(
-      "yzQuarter",
-      this.makeQuarterPlane(new BABYLON.Vector3(0, -Math.PI / 2, 0)),
       new BABYLON.Color4(0.5, 0.5, 1, 1),
     );
-    this.makeMesh(
-      "ring1",
-      this.makeRibbon(),
+    this.makeMesh("XZ Quarter",
+      this.makeQuarterPlane(new BABYLON.Vector3(0,Math.PI/2,0)),
+      new BABYLON.Color4(0.5, 1, 0.5, 1),
+    );
+    this.makeMesh("YZ Quarter",
+      this.makeQuarterPlane(new BABYLON.Vector3(-Math.PI / 2,0,0)),
+      new BABYLON.Color4(1, 0.5, 0.5, 1),
+    );
+    this.makeMesh("Ring 1",
+      this.makeRingRibbon(),
       new BABYLON.Color4(1, 0, 0, 1),
+      true,
     );
-    this.makeMesh(
-      "ring2",
-      this.makeRibbon(),
+    this.makeMesh("Ring 2",
+      this.makeRingRibbon(),
       new BABYLON.Color4(0, 1, 0, 1),
+      true,
     );
-    this.makeMesh(
-      "ring3",
-      this.makeRibbon(),
+    this.makeMesh("Ring 3",
+      this.makeRingRibbon(),
       new BABYLON.Color4(0, 0, 1, 1),
+      true,
     );
-    this.makeMesh(
-      "cage1",
+    this.makeMesh("Cage 1",
       this.makeCage(),
       new BABYLON.Color4(1, 0, 0, 1),
+      true,
     );
-    this.makeMesh(
-      "cage2",
+    this.makeMesh("Cage 2",
       this.makeCage(),
       new BABYLON.Color4(0, 1, 0, 1),
+      true,
     );
-    this.makeMesh(
-      "cage3",
+    this.makeMesh("Cage 3",
       this.makeCage(),
       new BABYLON.Color4(0, 0, 1, 1),
+      true,
     );
-    this.makeMesh(
-      "outerCage",
-      this.makeCage(100, 0.1, BABYLON.Mesh.FRONTSIDE),
-      new BABYLON.Color4(1, 1, 1, 1),
-    );
-    this.outerCage.isVisible = true;
-    this.outerCage.scaling = new BABYLON.Vector3(10,10,10);
+
+    // Outer cage to see view angle/zoom
+    this.outerCage = new BABYLON.Mesh('outerCage', this.scene);
+    this.makeCage(100, 0.1, BABYLON.Mesh.FRONTSIDE).applyToMesh(this.outerCage);
+    this.outerCage.scaling = new BABYLON.Vector3(10, 10, 10);
   }
 
-  makeMesh(name: string, vd:BABYLON.VertexData, color?:BABYLON.Color4) {
-    if (color != null) {
-      this.colorVertexData(vd, color);
-    }
-    var mesh = new BABYLON.Mesh(name, this.scene);
-    vd.applyToMesh(mesh);
-    mesh.isVisible = false;
-    this.meshlist.push(mesh);
-    this[name] = mesh;
+  makeMesh(name: string, vd:BABYLON.VertexData, color?:BABYLON.Color4, hasRadius:boolean=false) {
+    let mesh = new MeshView(this.scene, name, vd, color);
+    mesh.hasRadius = hasRadius;
+    this.meshes.push(mesh);
   }
 
   makeSphere(sphereColor:BABYLON.Color4, cageColor:BABYLON.Color4) {
     // Combine a sphere and a cage so you can see it rotating
     var vd1 = BABYLON.VertexData.CreateIcoSphere({subdivisions:6, flat:false});
-    this.colorVertexData(vd1, sphereColor);
+    colorVertexData(vd1, sphereColor);
     var vd2 = this.makeCage();
-    this.colorVertexData(vd2, cageColor);
+    colorVertexData(vd2, cageColor);
     vd1.merge(vd2);
     return vd1;
   }
 
-  makeAxis(rotation:BABYLON.Vector3, segments:number=100) {
-    var vd = BABYLON.VertexData.CreateCylinder({height:20,diameter:0.1,tessellation:8,subdivisions:segments})
+  makeAxis(rotation:BABYLON.Vector3, width:number=3, lengthSegments:number=100, widthSegments:number=5) {
+    var paths = new Array<Array<BABYLON.Vector3>>(widthSegments);
+    for (var j = 0; j < widthSegments; j++) {
+      paths[j] = new Array<BABYLON.Vector3>(lengthSegments);
+    }
+    for (var i = 0; i < lengthSegments; i++) {
+      for (var j = 0; j < widthSegments; j++) {
+        paths[j][i] = new Vector3(
+          -10 + 20 * (i / (lengthSegments-1)),
+          -width/2 + width * (j / (widthSegments-1)),
+          0,
+        );
+      }
+    }
+    var vd = BABYLON.VertexData.CreateRibbon({pathArray:paths,closePath:false,sideOrientation:BABYLON.Mesh.DOUBLESIDE})
     vd.transform(BABYLON.Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z + Math.PI / 2));
     return vd;
   }
@@ -174,7 +235,7 @@ export class Meshes {
     return vd;
   }
 
-  makeRibbon(segments:number = 100, width:number = 0.1, sideOrientation=BABYLON.Mesh.DOUBLESIDE) {
+  makeRingRibbon(segments:number = 100, width:number = 0.1, sideOrientation=BABYLON.Mesh.DOUBLESIDE) {
     var path1 = new Array<BABYLON.Vector3>(segments);
     var path2 = new Array<BABYLON.Vector3>(segments);
     for (var i = 0; i < segments; i++) {
@@ -189,23 +250,14 @@ export class Meshes {
   }
 
   makeCage(segments:number = 100, width:number = 0.1, sideOrientation=BABYLON.Mesh.DOUBLESIDE) {
-    var vd1 = this.makeRibbon(segments, width, sideOrientation);
-    var vd2 = this.makeRibbon(segments, width, sideOrientation);
+    var vd1 = this.makeRingRibbon(segments, width, sideOrientation);
+    var vd2 = this.makeRingRibbon(segments, width, sideOrientation);
     vd2.transform(BABYLON.Matrix.RotationX(Math.PI / 2));
-    var vd3 = this.makeRibbon(segments, width, sideOrientation);
+    var vd3 = this.makeRingRibbon(segments, width, sideOrientation);
     vd3.transform(BABYLON.Matrix.RotationY(Math.PI / 2));
     vd1.merge(vd2);
     vd1.merge(vd3);
     return vd1;
-  }
-
-  colorVertexData(vd:BABYLON.VertexData, color:BABYLON.Color4) {
-    var l = vd.positions.length / 3;
-    var colorsUnfolded = new Array<number>(l * 4);
-    for (var i = 0; i < l; i++) {
-      color.toArray(colorsUnfolded, i * 4);
-    }
-    vd.colors = colorsUnfolded;
   }
 
   get material(): BABYLON.Material {
@@ -214,8 +266,9 @@ export class Meshes {
 
   set material(n: BABYLON.Material) {
     this._material = n;
-    for (var mesh of this.meshlist) {
-      mesh.material = this._material;
+    for (var mesh of this.meshes) {
+      mesh.mesh.material = this._material;
     }
+    this.outerCage.material = this._material;
   }
 }

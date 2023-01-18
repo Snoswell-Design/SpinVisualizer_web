@@ -1,14 +1,29 @@
 import * as BABYLON from 'babylonjs';
-import * as dat from 'dat.gui';
+//import * as dat from 'dat.gui';
+import * as GUI from 'babylonjs-gui'
 import { SpinorShader } from './shader';
 import { Meshes } from './meshes';
 
 export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
-  var oldgui = document.getElementById("datGUI");
-  if (oldgui != null) {
-      oldgui.remove();
-  }
+  //scene.debugLayer.show();
+  let gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
+  var meshClass = new Meshes();
+  meshClass.material = shader.shader;
+
+  var panel = new GUI.StackPanel("Meshes");
+  panel.width = "200px";
+  panel.isVertical = true;
+  panel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+  panel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+  panel.background = "#99999999";
+  gui.addControl(panel);
+
+  for (var meshView of meshClass.meshes) {
+    panel.addControl(meshView.createControl());
+  }
+}
+/*
   let gui : dat.GUI = new dat.GUI();
   gui.domElement.style.marginTop = "100px";
   gui.domElement.id = "datGUI";
@@ -169,4 +184,4 @@ export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
   controllers["X Axis"].setValue(true);
   controllers["Y Axis"].setValue(true);
   controllers["Z Axis"].setValue(true);
-}
+}*/
