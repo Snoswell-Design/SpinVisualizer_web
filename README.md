@@ -16,4 +16,4 @@ Uses webpack to build/package javascipt, and Jekyll to create web pages.
 ## Run instructions
 
 Build javascript with webpack: npm run build
-Serve Jekyll: bundle exec jekyll serve
+Serve Jekyll: bundle exec jekyll serve (from ./docs)
