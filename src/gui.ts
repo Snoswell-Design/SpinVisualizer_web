@@ -2,7 +2,6 @@ import * as BABYLON from 'babylonjs';
 //import * as dat from 'dat.gui';
 import * as GUI from 'babylonjs-gui'
 import { SpinorShader } from './shader';
-import { Meshes } from './meshes';
 
 function makeSliderControl(name: string): [GUI.StackPanel, GUI.Slider] {
   let h = new GUI.TextBlock(name + '_label');
@@ -31,8 +30,8 @@ export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
   //scene.debugLayer.show();
   let gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-  var meshClass = new Meshes();
-  meshClass.material = shader.shader;
+  //var meshClass = new Meshes();
+  //meshClass.material = shader.shader;
 
   var panel = new GUI.StackPanel("Meshes");
   panel.width = "200px";
@@ -72,9 +71,9 @@ export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
 
   panel.addControl(shaderPanel);
 
-  for (var meshView of meshClass.meshes) {
+  /*for (var meshView of meshClass.meshes) {
     panel.addControl(meshView.createControl());
-  }
+  }*/
 }
 /*
   let gui : dat.GUI = new dat.GUI();

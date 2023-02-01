@@ -13,6 +13,7 @@ export class SpinorShader {
   power: number;
   center: number;
   shader: CustomMaterial;
+  stepFunction: (time:number) => BABYLON.Matrix[];
 
   constructor(scene: BABYLON.Scene) {
     this.steps = Array(numKernels+1);
@@ -77,9 +78,20 @@ export class SpinorShader {
     this.shader.onBindObservable.add(() => {
       this.shader.getEffect().setFloat('time', this.time);
 
-      //TEMPORARY, needs to be based on actual spinor we're rendering
-      this.steps[0] = BABYLON.Matrix.RotationZ(this.time);
-      this.steps[1] = this.steps[0].transpose();
+      if (this.stepFunction != null) {
+        let steps = this.stepFunction(this.time);
+        for (let i = 0; i < numKernels + 1; i++) {
+          if (i < steps.length) {
+            this.steps[i] = steps[i];
+          } else {
+            this.steps[i] = BABYLON.Matrix.Identity();
+          }
+        }
+      } else {
+        //TEMPORARY, needs to be based on actual spinor we're rendering
+        this.steps[0] = BABYLON.Matrix.RotationZ(this.time);
+        this.steps[1] = this.steps[0].transpose();
+      }
 
       this.shader.getEffect().setInt("numSteps", this.steps.length);
       var stepsUnfolded = new Float32Array(this.steps.length * 16);
