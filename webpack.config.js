@@ -1,14 +1,16 @@
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 
 module.exports = {
-    mode: 'development',
-    entry: {
-        index: './src/index.ts',
-    },
+    mode: 'production',
+    entry: './src/multiscene.ts',
     output: {
         filename: '[name].bundle.js',
         path: path.resolve(__dirname, 'docs/assets/js'),
+        globalObject: 'this',
+        library: {
+            name: 'SpinVisualizer',
+            type: 'umd',
+        },
     },
     resolve: {
         extensions: ['.ts', '.js'],
@@ -20,10 +22,5 @@ module.exports = {
             loader: 'ts-loader',
             exclude: /node_modules/
         }]
-    },
-    optimization: {
-        splitChunks: {
-            chunks: 'all',
-        },
     },
 }
