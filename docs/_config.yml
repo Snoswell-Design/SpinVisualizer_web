@@ -23,8 +23,8 @@ email: mark@snoswell.com
 description: >- # this means to ignore newlines until next tag
   Tool for visualizing spin in 3d space.
 domain: "snoswell-design.github.io"
-url: "https://snoswell-design.github.io/SpinVisualizer" # the base hostname & protocol for your site, e.g. http://example.com
-baseurl: "/SpinVisualizer" # the subpath of your site, e.g. /blog
+url: "https://snoswell-design.github.io/SpinVisualizer_web" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "/SpinVisualizer_web" # the subpath of your site, e.g. /blog
 
 # Build settings
 theme: minima
