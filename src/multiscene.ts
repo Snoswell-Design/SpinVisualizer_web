@@ -29,7 +29,6 @@ export class SpinorScene {
       this.canvas = canvas;
     } else if (typeof canvas == "string") {
       this.canvas = document.getElementById(canvas) as HTMLCanvasElement;
-      console.log(this.canvas);
     } else {
       this.canvas = canvas;
     }
@@ -62,11 +61,18 @@ export class SpinorScene {
       this.scene.detachControl();
     }
 
+    // Focus on mouseover
     this.canvas.addEventListener("mouseover", () => {
       attachedScene.scene.detachControl();
       engine.inputElement = this.canvas;
       this.scene.attachControl();
       attachedScene = this;
+    });
+
+    // Prevent scrolls when the mouse is over the canvas from scrolling the page
+    this.canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      e.stopPropagation();
     });
 
     // Outer cage
