@@ -75,8 +75,14 @@ export class SpinorScene {
       e.stopPropagation();
     });
 
-    // Outer cage
-    new MeshView({scene:this, mesh:OuterCage(), scale:10});
+    /*// Outer cage
+    new MeshView({
+      scene:this,
+      mesh:OuterCage(),
+      scale:10,
+      meshColor:new BABYLON.Color4(0,0,0,0),
+      alpha:0.2,
+    });*/
   }
 };
 

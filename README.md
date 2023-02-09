@@ -6,12 +6,12 @@ Uses webpack to build/package javascipt, and Jekyll to create web pages.
 ## Setup instructions:
 
 - Install [Node.js](https://nodejs.org/en/)
-- Install/setup [Webpack](https://webpack.js.org/guides/installation/)
+ - run npm install
 
 - Jekyll
  - Install Ruby and Gem
  - Install Jekyll and bundler (gem install jekyll bundler)
- - go to /docs and run bundle install
+ - go to ./docs and run bundle install
 
 ## Run instructions
 

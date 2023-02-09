@@ -60,12 +60,12 @@ export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
   });
   shaderPanel.addControl(timeH);
 
-  let [speedH, speedS] = makeSliderControl('Speed')
+  let [speedH, speedS] = makeSliderControl('Cycle Time')
   speedS.minimum = 0;
   speedS.maximum = 5;
   speedS.value = 1;
-  speedS.onValueChangedObservable.add((speed:number) => {
-    shader.speed = speed;
+  speedS.onValueChangedObservable.add((period:number) => {
+    shader.period = period;
   });
   shaderPanel.addControl(speedH);
 

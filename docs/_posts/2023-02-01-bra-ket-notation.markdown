@@ -7,27 +7,30 @@ local-javascript-list:
  - "/assets/js/main.bundle.js"
 ---
 
+<nav class="toc-fixed" markdown="1">
+* TOC
+{:toc}
+</nav>
+
+## Basic Spinor
+
 This is a basic spinor `<s>`
 
 <canvas id="c1" touch-action="none" style="width:80%;"></canvas>
 <script type="module">
-  function addViews(s) {
-    new SpinVisualizer.MeshView({
-      mesh:SpinVisualizer.ParticlePlaneRing({
-        innerRadius:3,
-      }),
-      meshColor: new BABYLON.Color4(1,0,0,1),
-    });
-    new SpinVisualizer.MeshView({
-      mesh:SpinVisualizer.RainbowSphere(),
-      scale:3,
-    });
-    s.shader.center = 3.5;
-  }
-  window.addViews = addViews;
-
   let s = new SpinVisualizer.SpinorScene("c1");
-  window.addViews(s);
+  s.shader.center = 3.5;
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRing({
+      innerRadius:3,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+    rotation:new BABYLON.Vector3(0,0,Math.PI/2),
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.SphereRainbow(),
+    scale:2.8,
+  });
 </script>
 
 It is constructed out of three components: `<`, `s`, and `>`.
@@ -39,13 +42,40 @@ Here is `<`:
 <canvas id="c2" touch-action="none" style="width:80%;"></canvas>
 <script type="module">
   let s = new SpinVisualizer.SpinorScene("c2");
-  window.addViews(s);
   s.shader.stepFunction = (time) => {
     return [
       BABYLON.Matrix.RotationZ(time),
     ];
   };
   s.shader.kernelWinds[0] = 0;
+  s.shader.center = 3.5;
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRing({
+      innerRadius:3,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+  });
+  /*new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Sphere(),
+    scale:2.8,
+    meshColor: new BABYLON.Color4(1, 0, 0, 0.5),
+    alpha:0.2,
+  });*/
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.SphereRainbow(),
+    scale:2,
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ArrowRing({
+      radius:2.9,
+      arc:Math.PI*2-0.2,
+      width:0.5,
+      arrowWidth:2,
+      arrowArc:0.5,
+    }),
+    meshColor: new BABYLON.Color4(0,0.5,0.9,1),
+  });
 </script>
 
 And then `>`:
@@ -53,7 +83,6 @@ And then `>`:
 <canvas id="c3" touch-action="none" style="width:80%;"></canvas>
 <script type="module">
   let s = new SpinVisualizer.SpinorScene("c3");
-  window.addViews(s);
   s.shader.stepFunction = (time) => {
     return [
       BABYLON.Matrix.Identity(),
@@ -61,6 +90,30 @@ And then `>`:
     ];
   };
   s.shader.kernelWinds[0] = 0;
+  s.shader.center = 3.5;
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRing({
+      innerRadius:3,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.SphereRainbow(),
+    scale:2,
+  });
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ArrowRing({
+      radius:2.9,
+      arc:Math.PI*2-0.2,
+      width:0.5,
+      arrowWidth:2,
+      arrowArc:0.5,
+    }),
+    rotation: new BABYLON.Vector3(Math.PI, 0, 0),
+    meshColor: new BABYLON.Color4(0,0.9,0.5,1),
+  });
 </script>
 
 Combine them together and they cancel out:
@@ -68,7 +121,6 @@ Combine them together and they cancel out:
 <canvas id="c4" touch-action="none" style="width:80%;"></canvas>
 <script type="module">
   let s = new SpinVisualizer.SpinorScene("c4");
-  window.addViews(s);
   s.shader.stepFunction = (time) => {
     return [
       BABYLON.Matrix.RotationZ(time),
@@ -76,19 +128,76 @@ Combine them together and they cancel out:
     ];
   };
   s.shader.kernelWinds[0] = 0;
+  s.shader.center = 3.5;
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRing({
+      innerRadius:3,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.SphereRainbow(),
+    scale:2,
+  });
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ArrowRing({
+      radius:2.9,
+      arc:Math.PI*2-0.2,
+      width:0.5,
+      arrowWidth:2,
+      arrowArc:0.5,
+    }),
+    meshColor: new BABYLON.Color4(0,0.5,0.9,1),
+    translation: new BABYLON.Vector3(0, 0, 1),
+    rotation: new BABYLON.Vector3(0, 0, -Math.PI/4),
+  });
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ArrowRing({
+      radius:2.9,
+      arc:Math.PI*2-0.2,
+      width:0.5,
+      arrowWidth:2,
+      arrowArc:0.5,
+    }),
+    rotation: new BABYLON.Vector3(Math.PI, 0, Math.PI/4),
+    meshColor: new BABYLON.Color4(0,0.9,0.5,1),
+    translation: new BABYLON.Vector3(0, 0, -1),
+  });
 </script>
 
-Then we have the "kernel" components. They do a fold in space, falling off with radius:
+Then we have the "kernel" component `s`. It does a fold in space, falling off with radius:
 
 <canvas id="c5" touch-action="none" style="width:80%;"></canvas>
 <script type="module">
   let s = new SpinVisualizer.SpinorScene("c5");
-  window.addViews(s);
   s.shader.stepFunction = (time) => {
     return [
     ];
   };
   s.shader.kernelWinds[0] = 1;
+  s.shader.center = 3.5;
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRingHalf({
+      innerRadius:3,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+    rotation:new BABYLON.Vector3(0,0,Math.PI),
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.SphereRainbow(),
+    scale:2,
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Axis({
+      width:0.5,
+    }),
+    meshColor: new BABYLON.Color4(1, 0, 0, 0.5),
+    rotation: new BABYLON.Vector3(0,0,Math.PI/2),
+  });
 </script>
 
 Stick the kernel in between the folds, and instead of cancelling everywhere, the `<` and `>` rotations double in the centre, and falloff to cancelling as the radius increases.
@@ -96,15 +205,47 @@ Stick the kernel in between the folds, and instead of cancelling everywhere, the
 <canvas id="c6" touch-action="none" style="width:80%;"></canvas>
 <script type="module">
   let s = new SpinVisualizer.SpinorScene("c6");
-  window.addViews(s);
+  s.shader.center = 3.5;
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRingHalf({
+      innerRadius:3,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+    rotation:new BABYLON.Vector3(0,0,Math.PI/2),
+    alpha: 0.2,
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.SphereRainbow(),
+    scale:2,
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Axis({
+      width:0.5,
+    }),
+    meshColor: new BABYLON.Color4(1, 0, 0, 0.5),
+  });
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ArrowRing({
+      radius:2.9,
+      arc:Math.PI*2-0.2,
+      width:0.5,
+      arrowWidth:2,
+      arrowArc:0.5,
+    }),
+    meshColor: new BABYLON.Color4(0,0.7,0.7,1),
+  });
+
 </script>
+
+## Quaternion Spinor
 
 Here is a more complicated spinor `<<s>s>`, still made in the same way:
 
 <canvas id="c7" touch-action="none" style="width:80%;"></canvas>
 <script type="module">
   let s = new SpinVisualizer.SpinorScene("c7");
-  window.addViews(s);
   s.shader.stepFunction = (time) => {
     return [
       BABYLON.Matrix.RotationZ(time * 2),
@@ -114,4 +255,25 @@ Here is a more complicated spinor `<<s>s>`, still made in the same way:
   };
   s.shader.kernelWinds[0] = 1;
   s.shader.kernelWinds[1] = 1;
+  s.shader.center = 3.5;
+
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRingHalf({
+      innerRadius:3,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+    rotation:new BABYLON.Vector3(0,0,Math.PI/2),
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Sphere(),
+    scale:2.8,
+    meshColor: new BABYLON.Color4(1, 0, 0, 0.5),
+    alpha:0.2,
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Axis({
+      width:0.5,
+    }),
+    meshColor: new BABYLON.Color4(1, 0, 0, 0.5),
+  });
 </script>

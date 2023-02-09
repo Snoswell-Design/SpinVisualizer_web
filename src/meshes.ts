@@ -24,6 +24,8 @@ export class MeshView {
     startInvisible?:boolean,
     scale?:number,
     rotation?:BABYLON.Vector3,
+    translation?:BABYLON.Vector3,
+    alpha?:number,
   }) {
     var {
       scene = latestScene,
@@ -34,6 +36,8 @@ export class MeshView {
       startInvisible = false,
       scale = 1,
       rotation,
+      translation,
+      alpha = 1,
     } = options;
     this.prettyName = name;
     this.color = guiColor;
@@ -45,8 +49,14 @@ export class MeshView {
     this.mesh.material = scene.shader.shader;
     this.mesh.isVisible = !startInvisible;
     this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+    if (translation != null) {
+      this.mesh.locallyTranslate(translation); 
+    }
     if (rotation != null) {
       this.mesh.rotation = rotation; 
+    }
+    if (alpha < 1) {
+      this.mesh.visibility = alpha;
     }
     this.hasRadius = mesh.hasRadius;
   }
@@ -180,7 +190,7 @@ export function Sphere(
   return {vertexData:vd1, hasRadius:true, defaultName:"Sphere"};
 }
 
-export function RainbowSphere() : MeshDefinition {
+export function SphereRainbow() : MeshDefinition {
   // First create one 1/8th segment of the sphere
   const segments = 8;
   var paths = new Array<Array<BABYLON.Vector3>>(segments + 1);
@@ -256,11 +266,16 @@ export function Cage(segments?:number, width?:number) : MeshDefinition {
   return {vertexData:vd1, hasRadius:true, defaultName:"Cage"};
 }
 
-export function Axis(
-  lengthSegments: number = 100,
-  widthSegments: number = 5,
-  width: number = 3,
-) : MeshDefinition {
+export function Axis(options: {
+  lengthSegments?:number,
+  widthSegments?:number,
+  width?:number,
+}) : MeshDefinition {
+  var {
+    lengthSegments = 100,
+    widthSegments = 5,
+    width = 3,
+  } = options;
   var paths = new Array<Array<BABYLON.Vector3>>(widthSegments);
   for (var j = 0; j < widthSegments; j++) {
     paths[j] = new Array<BABYLON.Vector3>(lengthSegments);
@@ -341,6 +356,33 @@ export function ParticlePlaneRing(options: {
   var particlePositions = new Array<BABYLON.Vector2>();
   for (var x = 0; x < particlesPerSide; x++) {
     let xC = x / (particlesPerSide - 1) * outerRadius * 2 - outerRadius;
+    for (var y = 0; y < particlesPerSide; y++) {
+      let yC = y / (particlesPerSide - 1) * outerRadius * 2 - outerRadius;
+      let c = new BABYLON.Vector2(xC, yC);
+      if (c.length() > innerRadius && c.length() < outerRadius) {
+        particlePositions.push(c);
+      }
+    }
+  }
+  var vd1 = makeParticlesVertexData(particlePositions, particleSize);
+  return {vertexData:vd1, hasRadius:false, defaultName:"Particle Plane"};
+}
+
+export function ParticlePlaneRingHalf(options: {
+    innerRadius:number,
+    outerRadius:number,
+    particlesPerSide?:number,
+    particleSize?:number,
+  }) : MeshDefinition {
+  var {
+    innerRadius = 1,
+    outerRadius = 10,
+    particlesPerSide = 50,
+    particleSize = 0.1,
+  } = options;
+  var particlePositions = new Array<BABYLON.Vector2>();
+  for (var x = 0; x < particlesPerSide / 2; x++) {
+    let xC = x / (particlesPerSide - 1) * outerRadius * 2;
     for (var y = 0; y < particlesPerSide; y++) {
       let yC = y / (particlesPerSide - 1) * outerRadius * 2 - outerRadius;
       let c = new BABYLON.Vector2(xC, yC);
@@ -462,4 +504,70 @@ export function ParticleRings(options: {
 export function OuterCage() : MeshDefinition {
   var vd1 = makeCage(100, 0.1, BABYLON.Mesh.FRONTSIDE);
   return {vertexData:vd1, hasRadius:false, defaultName:"Outer Cage"};
+}
+
+export function ArrowRing(options: {
+    radius?:number,
+
+    arc?:number,
+    arcSegments?:number,
+    width?:number,
+    widthSegments?:number,
+
+    arrowArc?:number,
+    arrowWidth?:number,
+    arrowSegments?:number,
+  }) : MeshDefinition {
+  var {
+    radius = 1,
+
+    arc = Math.PI,
+    arcSegments = 100,
+    width = 0.1,
+    widthSegments = 1,
+
+    arrowArc = 0.1,
+    arrowWidth = 0.5,
+    arrowSegments = 5,
+  } = options;
+
+  // Create arrow
+  var paths = new Array<Array<BABYLON.Vector3>>(widthSegments+1);
+  for (var w = 0; w <= widthSegments; w++) {
+    paths[w] = new Array<BABYLON.Vector3>(arrowSegments+1);
+  }
+  for (let a = 0; a <= arrowSegments; a++) {
+    let angle = (a / arrowSegments) * arrowArc;
+    let x = Math.cos(angle) * radius;
+    let y = Math.sin(angle) * radius;
+    let wi = (a / arrowSegments) * arrowWidth;
+    for (var w = 0; w <= widthSegments; w++) {
+      paths[w][a] = new BABYLON.Vector3(
+        x,
+        y,
+        ((w / widthSegments) - 0.5) * wi);
+    }
+  }
+  var vd1 = BABYLON.CreateRibbonVertexData({pathArray:paths,sideOrientation:BABYLON.Mesh.DOUBLESIDE})
+
+  // Create ring
+  var paths = new Array<Array<BABYLON.Vector3>>(widthSegments+1);
+  for (var w = 0; w <= widthSegments; w++) {
+    paths[w] = new Array<BABYLON.Vector3>(arcSegments+1);
+  }
+  for (let a = 0; a <= arcSegments; a++) {
+    let angle = (a / arcSegments) * (arc - arrowArc) + arrowArc;
+    let x = Math.cos(angle) * radius;
+    let y = Math.sin(angle) * radius;
+    for (var w = 0; w <= widthSegments; w++) {
+      paths[w][a] = new BABYLON.Vector3(
+        x,
+        y,
+        ((w / widthSegments) - 0.5) * width);
+    }
+  }
+  var vd2 = BABYLON.CreateRibbonVertexData({pathArray:paths,sideOrientation:BABYLON.Mesh.DOUBLESIDE})
+
+  vd1.merge(vd2);
+  return {vertexData:vd1, hasRadius:false, defaultName:"Arrow"};
 }

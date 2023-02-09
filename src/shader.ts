@@ -7,7 +7,7 @@ export class SpinorShader {
   steps: Array<BABYLON.Matrix>;
   kernelWinds: Float32Array;
   kernelPhases: Float32Array;
-  speed: number;
+  period: number;
   time: number;
   radius: number;
   power: number;
@@ -23,7 +23,7 @@ export class SpinorShader {
     this.kernelWinds = new Float32Array(numKernels);
     this.kernelPhases = new Float32Array(numKernels);
     this.time = 0;
-    this.speed = 1;
+    this.period = 8;
     this.radius = 10;
     this.power = 1.5;
     this.center = 1.3;
@@ -111,7 +111,7 @@ export class SpinorShader {
     });
 
     scene.registerBeforeRender(() => {
-      this.time += scene.getEngine().getDeltaTime() / 500 * this.speed;
+      this.time += scene.getEngine().getDeltaTime() / 1000 * Math.PI * 2 / this.period;
     });
 
     //TEMPORARY
