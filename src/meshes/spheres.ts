@@ -38,7 +38,6 @@ export function SphereRainbow() : MeshDefinition {
 
   // Copy and rotate it 7 times, coloring each section differently
   colorVertexData(vd1, new BABYLON.Color4(1, 0.5, 0.5, 1));
-  console.log(vd1);
 
   var vd2 = cloneVertexData(vd1);
   vd2.transform(BABYLON.Matrix.RotationYawPitchRoll(0, Math.PI / 2, 0));

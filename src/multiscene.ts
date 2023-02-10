@@ -1,4 +1,5 @@
 import * as BABYLON from 'babylonjs';
+import { AdvancedDynamicTexture } from 'babylonjs-gui';
 import { SpinorShader } from './shader';
 
 var renderCanvas = document.createElement("canvas");
@@ -15,18 +16,11 @@ export class SpinorScene {
   camera: BABYLON.ArcRotateCamera;
   shader: SpinorShader;
   light: BABYLON.HemisphericLight;
+  linkedCameraScenes: Array<SpinorScene>;
+  gui:AdvancedDynamicTexture;
 
-  constructor(canvas?:HTMLCanvasElement|string) {
-    if (canvas == null) {
-      // Make a new canvas and insert it just before the script element calling this code
-      var scripts = document.getElementsByTagName('script');
-      var currentScriptElement = scripts[scripts.length - 1];
-      canvas = document.createElement("canvas")
-      canvas.setAttribute("touch-action", "none");
-      canvas.style.width = "100%";
-      currentScriptElement.parentElement.insertBefore(canvas, currentScriptElement);
-      this.canvas = canvas;
-    } else if (typeof canvas == "string") {
+  constructor(canvas:HTMLCanvasElement|string) {
+    if (typeof canvas == "string") {
       this.canvas = document.getElementById(canvas) as HTMLCanvasElement;
     } else {
       this.canvas = canvas;
@@ -81,11 +75,35 @@ export class SpinorScene {
       meshColor:new BABYLON.Color4(0,0,0,0),
       alpha:0.2,
     });*/
+
+    this.linkedCameraScenes = new Array<SpinorScene>();
+  }
+
+  makeGui() {
+    this.gui = AdvancedDynamicTexture.CreateFullscreenUI("UI",true,this.scene);
+  }
+
+  static LinkCameras(...scenes:SpinorScene[]) {
+    for (var i = 0; i < scenes.length-1; i++) {
+      for (var j = i+1; j < scenes.length; j++) {
+        scenes[i].linkedCameraScenes.push(scenes[j]);
+        scenes[j].linkedCameraScenes.push(scenes[i]);
+      }
+    }
   }
 };
 
 engine.runRenderLoop(() => {
   if (viewSceneMap.has(engine.activeView)) {
-    viewSceneMap.get(engine.activeView).scene.render();
+    let scene = viewSceneMap.get(engine.activeView);
+    scene.scene.render();
+
+    if (attachedScene == scene) {
+      for (var s of scene.linkedCameraScenes) {
+        s.camera.alpha = scene.camera.alpha;
+        s.camera.beta = scene.camera.beta;
+        s.camera.radius = scene.camera.radius;
+      }
+    }
   }
 });

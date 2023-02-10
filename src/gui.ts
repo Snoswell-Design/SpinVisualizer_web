@@ -1,7 +1,54 @@
 import * as BABYLON from 'babylonjs';
-//import * as dat from 'dat.gui';
 import * as GUI from 'babylonjs-gui'
+import { SpinorScene } from './multiscene';
 import { SpinorShader } from './shader';
+
+export function TopSlider(
+  name:string,
+  min:number,
+  max:number,
+  step:number,
+  onChange:(value:number) => void,
+) : [GUI.Container, GUI.Slider] {
+  let h = new GUI.TextBlock(name + '_label');
+  h.text = name;
+  h.height = '30px';
+  h.color = 'black';
+  h.textHorizontalAlignment = 0;
+  h.paddingLeftInPixels = 5;
+
+  let s = new GUI.Slider(name + '_slider');
+  s.width = '100%';
+  s.height = '20px';
+  s.color = 'black';
+  s.minimum = min;
+  s.maximum = max;
+  s.step = step;
+
+  s.onValueChangedObservable.add(onChange);
+
+  let headerPanel = new GUI.Grid(name + '_controls');
+  headerPanel.addColumnDefinition(150,true);
+  headerPanel.addColumnDefinition(1);
+  headerPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+  headerPanel.background = "#99999999";
+  headerPanel.width = '100%';
+  headerPanel.height = '30px';
+  headerPanel.addControl(h,0,0);
+  headerPanel.addControl(s,0,1);
+
+  return [headerPanel, s]
+}
+
+export function PhaseSlider(s:SpinorScene) {
+  var [panel, slider] = TopSlider("Phase", 0, 1, 0.01,(value:number)=> {
+    s.shader.time = value * Math.PI * 2;
+  });
+  s.scene.registerAfterRender(() => {
+    slider.value = (s.shader.time / Math.PI / 2) % 1;
+  });
+  return [panel, slider];
+}
 
 function makeSliderControl(name: string): [GUI.StackPanel, GUI.Slider] {
   let h = new GUI.TextBlock(name + '_label');
