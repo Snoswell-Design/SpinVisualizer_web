@@ -64,9 +64,13 @@ export class SpinorShader {
     `);
     this.shader.Vertex_After_WorldPosComputed(`
         float r = 1.0 - (length(worldPos) - radial_center) / (radial_radius - radial_center);
-        //float r = 1.0 - length(worldPos) / radial_radius;
         r = clamp(r, 0.0, 1.0);
-        r = pow(r, radial_power);
+        r = -0.5 * (cos(PI*r) - 1.0);
+        if (radial_power > 0.0) {
+          r = pow(r,radial_power);
+        } else {
+          r = 1.0-(pow(1.0-r,-radial_power));
+        }
         mat4 rotation = mat4(1.0);
         for (int i = 0; i < numSteps-1; i++) {
             rotation = rotation * steps[i];

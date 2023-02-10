@@ -1,6 +1,5 @@
 import * as BABYLON from 'babylonjs';
 import { SpinorShader } from './shader';
-import { MeshView, OuterCage } from './meshes';
 
 var renderCanvas = document.createElement("canvas");
 export const engine = new BABYLON.Engine(renderCanvas, true);
@@ -47,7 +46,6 @@ export class SpinorScene {
     this.shader = new SpinorShader(this.scene);
 
     this.light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1,1,0), this.scene);
-
 
     this.view = engine.registerView(this.canvas, this.camera);
     viewSceneMap.set(this.view, this);
