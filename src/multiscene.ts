@@ -18,13 +18,15 @@ export class SpinorScene {
   light: BABYLON.HemisphericLight;
   linkedCameraScenes: Array<SpinorScene>;
   gui:AdvancedDynamicTexture;
+  assetLocation:string;
 
-  constructor(canvas:HTMLCanvasElement|string) {
+  constructor(canvas:HTMLCanvasElement|string, assetLocation?:string) {
     if (typeof canvas == "string") {
       this.canvas = document.getElementById(canvas) as HTMLCanvasElement;
     } else {
       this.canvas = canvas;
     }
+    this.assetLocation = assetLocation;
     
     this.scene = new BABYLON.Scene(engine);
     this.scene.clearColor = new BABYLON.Color4(0.8,0.8,0.8,1);

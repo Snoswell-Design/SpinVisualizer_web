@@ -88,7 +88,7 @@ We use a kernel function to describe a fold in space, `s`. This fold in space is
 
 <canvas id="cket" touch-action="none" style="width:100%;"></canvas>
 <script type="module">
-  let s = new SpinVisualizer.SpinorScene("cket");
+  let s = new SpinVisualizer.SpinorScene("cket", "{{ site.baseurl }}/assets");
   s.shader.stepFunction = (time) => {
     return [
     ];
@@ -116,25 +116,35 @@ We use a kernel function to describe a fold in space, `s`. This fold in space is
   });
 
   s.makeGui();
-  var [panel, slider] = SpinVisualizer.TopSlider(
+
+  var anim = new SpinVisualizer.ScrubAnimation(s);
+  anim.add(
+    [
+      [1,0],
+      [2,1],
+      [3,1],
+    ],
+    s.shader.kernelWinds, '0');
+
+  /*var [panel, slider] = SpinVisualizer.TopSlider(
     "Fold Amount",
     0, 1, 0.01,
     (value) => {
       s.shader.kernelWinds[0] = value;
     },
   );
-  s.gui.addControl(panel);
+  s.gui.addControl(panel);*/
 </script>
 
-# Spin $$ 1/2 $$
+# Spin ½
 
-This shows where the 2 rotations come from. Every type of spin has a fold that flips rotation at some radius over to the inverse rotation at another radius. The means that the result – the thing in the middle – gets rotated twice per cycle. If we just look at the thing in the middle, when it has done one rotation the whole spinor is only half done, thus it is called spin $$ 1/2 $$. 
+This shows where the 2 rotations come from. Every type of spin has a fold that flips rotation at some radius over to the inverse rotation at another radius. The means that the result – the thing in the middle – gets rotated twice per cycle. If we just look at the thing in the middle, when it has done one rotation the whole spinor is only half done, thus it is called spin ½. 
 
 Traditional mathematical treatments to spin just look at the result at some point and talk about something with spin knowing its connection to space. Here we show the connection of the spin result to the surrounding space. We show spin from the inside to the outside – but if you created a spinning wave in space then the central spin would extend out forever, falling off at $$ 1/r^2 $$. Interestingly there is still some radius where the fold in space happens and there is a maximum folding-spin of space.
-Spin $$ 1/2 $$, $$ 1/4 $$ and so on…
-Of course, we could start with a double rotation and fold space this would create a spin $$ 1/4 $$. We can go one with any number of rotations resulting in spin $$ 1/2^n $$.
+Spin ½, ¼ and so on…
+Of course, we could start with a double rotation and fold space this would create a spin ¼. We can go one with any number of rotations resulting in spin $$ 1/2^n $$.
 
-Left: `<s>`, spin $$ 1/2 $$. Right: `<<s>s>`, spin $$ 1/4 $$.
+Left: `<s>`, spin ½. Right: `<<s>s>`, spin ¼.
 
 <canvas id="chalf1" touch-action="none" style="width:50%;float:left;"></canvas>
 <canvas id="chalf2" touch-action="none" style="width:50%;float:left;"></canvas>
@@ -203,3 +213,8 @@ Left: `<s>`, spin $$ 1/2 $$. Right: `<<s>s>`, spin $$ 1/4 $$.
 
   SpinVisualizer.SpinorScene.LinkCameras(s1, s2);
 </script>
+
+The simple spinor created with `<s>` matches the spinor others have sometimes illustrated and described by Paul Driac as the Dirac spinor.
+If we use a Quaternion algebra to describe a simple spinor the result is a little more complicated and is shown by the simplest 2 fold spinors in our notation. `<<s>s>`
+
+Illustrate the `<<s>s>` spinor
