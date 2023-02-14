@@ -17,6 +17,10 @@ Describing Spinors – modified Bra-Ket notation.
 
 As spin is based on rotations we use left and right pointy brackets to denote some dynamic rotation in time and its opposite (inverse). For example, `<` left rotation, `>` right rotation.
 
+`These windows are interactive. Left click and drag to rotate view, scroll to zoom.`
+
+`If nothing is visible, switch browsers. Chrome is known to work.`
+
 <canvas id="cbra1" touch-action="none" style="width:50%;float:left;"></canvas>
 <canvas id="cbra2" touch-action="none" style="width:50%;float:left;"></canvas>
 
@@ -36,14 +40,8 @@ As spin is based on rotations we use left and right pointy brackets to denote so
   }
 
   // <
-  var s1 = new SpinVisualizer.SpinorScene("cbra1");
+  var s1 = new SpinVisualizer.SpinorScene("cbra1", "<");
   setup(s1);
-  s1.shader.stepFunction = (time) => {
-    return [
-      BABYLON.Matrix.RotationZ(time),
-    ];
-  };
-  s1.shader.kernelWinds[0] = 0;
 
   new SpinVisualizer.MeshView({
     mesh:SpinVisualizer.ArrowRing({
@@ -57,15 +55,8 @@ As spin is based on rotations we use left and right pointy brackets to denote so
   });
 
   // >
-  var s2 = new SpinVisualizer.SpinorScene("cbra2");
+  var s2 = new SpinVisualizer.SpinorScene("cbra2", ">");
   setup(s2);
-  s2.shader.stepFunction = (time) => {
-    return [
-      BABYLON.Matrix.Identity(),
-      BABYLON.Matrix.RotationZ(time).transpose(),
-    ];
-  };
-  s2.shader.kernelWinds[0] = 0;
 
   new SpinVisualizer.MeshView({
     mesh:SpinVisualizer.ArrowRing({
@@ -88,12 +79,7 @@ We use a kernel function to describe a fold in space, `s`. This fold in space is
 
 <canvas id="cket" touch-action="none" style="width:100%;"></canvas>
 <script type="module">
-  let s = new SpinVisualizer.SpinorScene("cket", "{{ site.baseurl }}/assets");
-  s.shader.stepFunction = (time) => {
-    return [
-    ];
-  };
-  s.shader.kernelWinds[0] = 1;
+  let s = new SpinVisualizer.SpinorScene("cket", "s", "{{ site.baseurl }}/assets");
   s.shader.center = 3.5;
 
   new SpinVisualizer.MeshView({
@@ -172,8 +158,7 @@ Left: `<s>`, spin ½. Right: `<<s>s>`, spin ¼.
     });
   }
 
-  // <
-  var s1 = new SpinVisualizer.SpinorScene("chalf1");
+  var s1 = new SpinVisualizer.SpinorScene("chalf1", "<s>");
   setup(s1);
 
   new SpinVisualizer.MeshView({
@@ -187,18 +172,8 @@ Left: `<s>`, spin ½. Right: `<<s>s>`, spin ¼.
     meshColor: new BABYLON.Color4(0,0.5,0.9,1),
   });
 
-  // >
-  var s2 = new SpinVisualizer.SpinorScene("chalf2");
+  var s2 = new SpinVisualizer.SpinorScene("chalf2", "<<s>s>");
   setup(s2);
-  s2.shader.stepFunction = (time) => {
-    return [
-      BABYLON.Matrix.RotationZ(time * 2),
-      BABYLON.Matrix.RotationZ(time).transpose(),
-      BABYLON.Matrix.RotationZ(time).transpose(),
-    ];
-  };
-  s2.shader.kernelWinds[0] = 1;
-  s2.shader.kernelWinds[1] = 1;
 
   new SpinVisualizer.MeshView({
     mesh:SpinVisualizer.ArrowRing({
@@ -218,3 +193,97 @@ The simple spinor created with `<s>` matches the spinor others have sometimes il
 If we use a Quaternion algebra to describe a simple spinor the result is a little more complicated and is shown by the simplest 2 fold spinors in our notation. `<<s>s>`
 
 Illustrate the `<<s>s>` spinor
+
+By combining the Bra and Ket functions we can generate an infinitely countable set of ever more complicated spinors classified by how many Kernel functions they have.
+
+Here is a list of the first three orders of the simple 2D spinors with their spin. Note that a spin of zero still encodes a real spinor.
+
+`(Click on a cell to change the visible spinor)`
+
+<table id="braket_table"></table>
+<canvas id="spinorlist" touch-action="none" style="width:100%;"></canvas>
+
+<script type="module">
+  var table = document.getElementById("braket_table");
+
+  const brakets = [
+    ["<s> (½)"],
+    ["<s<s>> (½)", "<s>>s<  (-¼)"],
+    ["<s<s>s> (0)", "<s>s<s>  (¼)", "<s>s>s< (0)", "<s<<s>s>> (0)"],
+    ["<s>>s>s<< (0)", "<s<s>>>s< (-¼)", "<s<s<s>>> (¼)", "<s>>s<<s> (⅙)"],
+  ];
+
+  function makeClickableTable(elem, cells, func) {
+    var width = 0;
+    for (var row of cells) {
+      if (row.length > width) {
+        width = row.length;
+      }
+    }
+    var currentSelection;
+    for (var row of cells) {
+      var tr = elem.insertRow();
+      for (var i = 0; i < width; i++) {
+        let td = tr.insertCell();
+        if (i < row.length) {
+          let cell = row[i];
+          td.appendChild(document.createTextNode(cell));
+          td.addEventListener('click', () => {
+            currentSelection.style.backgroundColor = null;
+            currentSelection = td;
+            td.style.backgroundColor = 'lightgreen';
+            func(cell)
+          });
+          if (currentSelection == undefined) {
+              currentSelection = td;
+              td.style.backgroundColor = 'lightgreen';
+          }
+        }
+      }
+    }
+  }
+
+
+  var s = new SpinVisualizer.SpinorScene("spinorlist", "<s>");
+  s.shader.center = 3.5;
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRing({
+      innerRadius:2,
+      particlesPerSide:200,
+      particleSize:0.05,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+    rotation:new BABYLON.Vector3(0,0,Math.PI/2),
+    alpha: 0.2,
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.SphereRainbow(),
+    scale:2,
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Axis({
+      width:1,
+      lengthSegments:500,
+    }),
+    meshColor: new BABYLON.Color4(1, 0, 0, 0.5),
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Axis({
+      width:1,
+      lengthSegments:500,
+    }),
+    meshColor: new BABYLON.Color4(0, 0, 1, 0.5),
+    rotation:new BABYLON.Vector3(0,Math.PI/2,0),
+  });
+
+  function changeSpinor(cell) {
+    cell = cell.split(" ")[0];
+    s.shader.parseBraKet(cell);
+  }
+
+  makeClickableTable(table, brakets, changeSpinor);
+
+
+</script>
+
+

@@ -20,7 +20,7 @@ export class SpinorScene {
   gui:AdvancedDynamicTexture;
   assetLocation:string;
 
-  constructor(canvas:HTMLCanvasElement|string, assetLocation?:string) {
+  constructor(canvas:HTMLCanvasElement|string, braket:string, assetLocation?:string) {
     if (typeof canvas == "string") {
       this.canvas = document.getElementById(canvas) as HTMLCanvasElement;
     } else {
@@ -40,6 +40,7 @@ export class SpinorScene {
     this.camera.lockedTarget = BABYLON.Vector3.Zero();
 
     this.shader = new SpinorShader(this.scene);
+    this.shader.parseBraKet(braket);
 
     this.light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1,1,0), this.scene);
 

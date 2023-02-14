@@ -4,7 +4,8 @@ import { CustomMaterial } from 'babylonjs-materials';
 const numKernels = 3;
 
 export class SpinorShader {
-  steps: Array<BABYLON.Matrix>;
+  stepSpeeds: Float32Array;
+  stepPhases:Float32Array;
   kernelWinds: Float32Array;
   kernelPhases: Float32Array;
   period: number;
@@ -13,13 +14,10 @@ export class SpinorShader {
   power: number;
   center: number;
   shader: CustomMaterial;
-  stepFunction: (time:number) => BABYLON.Matrix[];
 
   constructor(scene: BABYLON.Scene) {
-    this.steps = Array(numKernels+1);
-    for (let i = 0; i < numKernels+1; i++) {
-      this.steps[i] = BABYLON.Matrix.Identity();
-    }
+    this.stepSpeeds = new Float32Array(numKernels+1);
+    this.stepPhases = new Float32Array(numKernels+1);
     this.kernelWinds = new Float32Array(numKernels);
     this.kernelPhases = new Float32Array(numKernels);
     this.time = 0;
@@ -29,11 +27,12 @@ export class SpinorShader {
     this.center = 1.3;
 
     this.shader = new CustomMaterial("spinorMaterial", scene);
+    this.shader.AddUniform('time', 'float', 0);
     this.shader.AddUniform('numSteps', 'int', numKernels + 1);
-    this.shader.AddUniform("steps", "mat4[" + (numKernels+1) + "]", null);
+    this.shader.AddUniform('stepSpeeds', 'float[' + (numKernels + 1) + ']', null);
+    this.shader.AddUniform('stepPhases', 'float[' + (numKernels + 1) + ']', null);
     this.shader.AddUniform('kernelWinds', 'float[' + numKernels + ']', null);
     this.shader.AddUniform('kernelPhases', 'float[' + numKernels + ']', null);
-    this.shader.AddUniform('time', 'float', 0);
     this.shader.AddUniform('radial_radius', 'float', 0);
     this.shader.AddUniform('radial_power', 'float', 0);
     this.shader.AddUniform('radial_center', 'float', 0);
@@ -72,39 +71,21 @@ export class SpinorShader {
           r = 1.0-(pow(1.0-r,-radial_power));
         }
         mat4 rotation = mat4(1.0);
-        for (int i = 0; i < numSteps-1; i++) {
-            rotation = rotation * steps[i];
-            rotation = rotation * foldXY(r * PI * kernelWinds[i], kernelPhases[i]);
+        for (int i = 0; i < numSteps; i++) {
+          rotation = rotation * rotXY(time * stepSpeeds[i] + stepPhases[i]);
+          rotation = rotation * foldXY(r * PI * kernelWinds[i], kernelPhases[i]);
         }
-        rotation = rotation * steps[numSteps-1];
+        rotation = rotation * rotXY(time * stepSpeeds[numSteps] + stepPhases[numSteps]);
         worldPos = worldPos * rotation;
         vNormalW = vec3(vec4(vNormalW, 1.0) * rotation);
     `);
 
     this.shader.onBindObservable.add(() => {
       this.shader.getEffect().setFloat('time', this.time);
+      this.shader.getEffect().setInt("numSteps", numKernels);
 
-      if (this.stepFunction != null) {
-        let steps = this.stepFunction(this.time);
-        for (let i = 0; i < numKernels + 1; i++) {
-          if (i < steps.length) {
-            this.steps[i] = steps[i];
-          } else {
-            this.steps[i] = BABYLON.Matrix.Identity();
-          }
-        }
-      } else {
-        //TEMPORARY, needs to be based on actual spinor we're rendering
-        this.steps[0] = BABYLON.Matrix.RotationZ(this.time);
-        this.steps[1] = this.steps[0].transpose();
-      }
-
-      this.shader.getEffect().setInt("numSteps", this.steps.length);
-      var stepsUnfolded = new Float32Array(this.steps.length * 16);
-      for (var i = 0; i < this.steps.length; i++) {
-          stepsUnfolded.set(this.steps[i].asArray(), i*16);
-      }
-      this.shader.getEffect().setMatrices("steps", stepsUnfolded);
+      this.shader.getEffect().setFloatArray("stepSpeeds", this.stepSpeeds);
+      this.shader.getEffect().setFloatArray("stepPhases", this.stepPhases);
 
       this.shader.getEffect().setFloatArray("kernelWinds", this.kernelWinds);
       this.shader.getEffect().setFloatArray("kernelPhases", this.kernelPhases);
@@ -117,8 +98,41 @@ export class SpinorShader {
     scene.registerBeforeRender(() => {
       this.time += scene.getEngine().getDeltaTime() / 1000 * Math.PI * 2 / this.period;
     });
+  }
 
-    //TEMPORARY
-    this.kernelWinds[0] = 1;
+  parseBraKet(def:string) {
+    if ((def.match("/s/g") || []).length > numKernels) {
+      console.error('too many kernels in bra-ket definition, max is ' + numKernels, def);
+      return;
+    }
+    for (var i = 0; i < numKernels; i++) {
+      this.stepSpeeds[i] = 0;
+      this.stepPhases[i] = 0;
+      this.kernelWinds[i] = 0;
+      this.kernelPhases[i] = 0;
+    }
+    this.stepSpeeds[numKernels] = 0;
+    this.stepPhases[numKernels] = 0;
+
+    var currentStep:number = 0;
+    var currentSpeed:number = 0;
+    for (var i = 0; i < def.length; i++) {
+      let c = def.charAt(i);
+      switch (c) {
+        case 's':
+          this.stepSpeeds[currentStep] = currentSpeed;
+          currentSpeed = 0;
+          this.kernelWinds[currentStep] = 1;
+          currentStep += 1;
+          break;
+        case '<':
+          currentSpeed += 1;
+          break;
+        case '>':
+          currentSpeed -= 1;
+          break;
+      }
+    }
+    this.stepSpeeds[currentStep] = currentSpeed;
   }
 }
