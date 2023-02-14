@@ -7,3 +7,5 @@ export * from './meshes/ribbons';
 export * from './meshes/spheres';
 export * from './meshes/straps';
 export * from './animation';
+
+export * as HTML from './htmlgui';

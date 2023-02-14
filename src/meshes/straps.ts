@@ -107,6 +107,37 @@ export function AxisStrap(options: {
   return {vertexData:vd, hasRadius:false, defaultName:"Axis"};
 }
 
+export function AxisTube(options:{
+  length?:number,
+  radius?:number,
+  lengthSegments?:number,
+  arcSegments?:number,
+}) : MeshDefinition {
+  var {
+    length = 10,
+    radius = 0.2,
+    lengthSegments = 100,
+    arcSegments = 32,
+  } = options;
+  var paths = new Array<Array<BABYLON.Vector3>>(arcSegments);
+  for (let a = 0; a < arcSegments; a++) {
+    paths[a] = new Array<BABYLON.Vector3>(lengthSegments+1);
+  }
+  for (let a = 0; a < arcSegments; a++) {
+    let angle = (a / arcSegments) * Math.PI * 2;
+    let x = Math.cos(angle) * radius;
+    let y = Math.sin(angle) * radius;
+    for (var l = 0; l <= lengthSegments; l++) {
+      paths[a][l] = new BABYLON.Vector3(
+        x,
+        y,
+        -length + ((l / lengthSegments)) * length * 2);
+    }
+  }
+  var vd = BABYLON.CreateRibbonVertexData({pathArray:paths,closeArray:true,sideOrientation:BABYLON.Mesh.BACKSIDE});
+  return {vertexData:vd, hasRadius:false, defaultName:"Axis"};
+}
+
 function makePlane(bl:BABYLON.Vector3, br:BABYLON.Vector3, tl:BABYLON.Vector3, tr:BABYLON.Vector3, widthSegments:number, heightSegments:number, sideOrientation:number) {
   var paths = new Array<Array<BABYLON.Vector3>>(widthSegments+1);
   for (var x = 0; x <= widthSegments; x++) {

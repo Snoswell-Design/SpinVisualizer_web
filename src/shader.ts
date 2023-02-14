@@ -1,7 +1,7 @@
 import * as BABYLON from 'babylonjs';
 import { CustomMaterial } from 'babylonjs-materials';
 
-const numKernels = 3;
+const numKernels = 4;
 
 export class SpinorShader {
   stepSpeeds: Float32Array;
@@ -14,6 +14,8 @@ export class SpinorShader {
   power: number;
   center: number;
   shader: CustomMaterial;
+  spin: number;
+  braketChangeListeners: Array<() => void>;
 
   constructor(scene: BABYLON.Scene) {
     this.stepSpeeds = new Float32Array(numKernels+1);
@@ -25,11 +27,12 @@ export class SpinorShader {
     this.radius = 10;
     this.power = 1.5;
     this.center = 1.3;
+    this.spin = 0;
+    this.braketChangeListeners = new Array();
 
     this.shader = new CustomMaterial("spinorMaterial", scene);
     this.shader.AddUniform('time', 'float', 0);
     this.shader.AddUniform('numSteps', 'int', numKernels + 1);
-    this.shader.AddUniform('stepSpeeds', 'float[' + (numKernels + 1) + ']', null);
     this.shader.AddUniform('stepPhases', 'float[' + (numKernels + 1) + ']', null);
     this.shader.AddUniform('kernelWinds', 'float[' + numKernels + ']', null);
     this.shader.AddUniform('kernelPhases', 'float[' + numKernels + ']', null);
@@ -72,10 +75,10 @@ export class SpinorShader {
         }
         mat4 rotation = mat4(1.0);
         for (int i = 0; i < numSteps; i++) {
-          rotation = rotation * rotXY(time * stepSpeeds[i] + stepPhases[i]);
+          rotation = rotation * rotXY(stepPhases[i]);
           rotation = rotation * foldXY(r * PI * kernelWinds[i], kernelPhases[i]);
         }
-        rotation = rotation * rotXY(time * stepSpeeds[numSteps] + stepPhases[numSteps]);
+        rotation = rotation * rotXY(stepPhases[numSteps]);
         worldPos = worldPos * rotation;
         vNormalW = vec3(vec4(vNormalW, 1.0) * rotation);
     `);
@@ -96,15 +99,17 @@ export class SpinorShader {
     });
 
     scene.registerBeforeRender(() => {
-      this.time += scene.getEngine().getDeltaTime() / 1000 * Math.PI * 2 / this.period;
+      if (this.period > 0) {
+        let delta = scene.getEngine().getDeltaTime() / 1000 * Math.PI * 2 / this.period;
+        this.time += delta;
+        for (var i = 0; i <= numKernels; i++) {
+          this.stepPhases[i] += this.stepSpeeds[i] * delta;
+        }
+      }
     });
   }
 
   parseBraKet(def:string) {
-    if ((def.match("/s/g") || []).length > numKernels) {
-      console.error('too many kernels in bra-ket definition, max is ' + numKernels, def);
-      return;
-    }
     for (var i = 0; i < numKernels; i++) {
       this.stepSpeeds[i] = 0;
       this.stepPhases[i] = 0;
@@ -116,10 +121,16 @@ export class SpinorShader {
 
     var currentStep:number = 0;
     var currentSpeed:number = 0;
+    var spin:number = 0;
     for (var i = 0; i < def.length; i++) {
       let c = def.charAt(i);
       switch (c) {
         case 's':
+          if (currentStep % 2 == 0) {
+            spin += currentSpeed;
+          } else {
+            spin -= currentSpeed;
+          }
           this.stepSpeeds[currentStep] = currentSpeed;
           currentSpeed = 0;
           this.kernelWinds[currentStep] = 1;
@@ -133,6 +144,29 @@ export class SpinorShader {
           break;
       }
     }
+    if (currentStep % 2 == 0) {
+      spin += currentSpeed;
+    } else {
+      spin -= currentSpeed;
+    }
     this.stepSpeeds[currentStep] = currentSpeed;
+    this.spin = spin;
+    for (var listener of this.braketChangeListeners) {
+      listener();
+    }
+  }
+
+  addListener(listener:() => void, fireNow=false) {
+    this.braketChangeListeners.push(listener);
+    if (fireNow) {
+      listener();
+    }
+  }
+
+  setTime(t:number) {
+    this.time = t;
+    for (var i = 0; i <= numKernels; i++) {
+      this.stepPhases[i] = this.stepSpeeds[i] * t;
+    }
   }
 }
