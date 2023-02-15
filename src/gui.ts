@@ -9,7 +9,7 @@ export class PlaySlider extends GUI.Grid {
   pauseImg:string;
   slider:GUI.Slider;
   sliderContainer:GUI.Rectangle;
-  ticks:Array<GUI.Line>;
+  tickContainer:GUI.Grid;
 
   currentTime:number;
   speed:number;
@@ -39,6 +39,7 @@ export class PlaySlider extends GUI.Grid {
     this.sliderContainer = new GUI.Rectangle();
     this.sliderContainer.width = '100%';
     this.sliderContainer.height = '100%';
+    this.sliderContainer.thickness = 0;
     this.addControl(this.sliderContainer, 0, 1);
 
     this.slider = new GUI.Slider('animation_slider');
@@ -48,6 +49,15 @@ export class PlaySlider extends GUI.Grid {
     this.slider.minimum = 0;
     this.slider.maximum = 0;
     this.slider.step = step;
+
+    this.tickContainer = new GUI.Grid();
+    this.tickContainer.width = '100%';
+    this.tickContainer.height = '100%';
+    this.tickContainer.paddingLeftInPixels = this.slider.thumbWidthInPixels / 2;
+    this.tickContainer.paddingRightInPixels = this.slider.thumbWidthInPixels / 2;
+    this.tickContainer.background = '#00000022';
+
+    this.sliderContainer.addControl(this.tickContainer);
     this.sliderContainer.addControl(this.slider);
 
     this.currentTime = 0;
@@ -104,31 +114,30 @@ export class PlaySlider extends GUI.Grid {
   }
 
   updateTicks(tickValues:Array<number>) {
-    if (this.ticks != undefined) {
-      for (let t of this.ticks) {
-        this.sliderContainer.removeControl(t);
-      }
+    // Remove old tick marks
+    this.tickContainer.clearControls();
+    for (let i = this.tickContainer.columnCount-1; i >= 0; i--) {
+      this.tickContainer.removeColumnDefinition(i);
     }
+    // Return early in no tick to add
     if (tickValues == undefined || tickValues.length < 1) { return; }
-    if (tickValues[0] <= 0) { tickValues.shift(); }
-    if (tickValues[tickValues.length-1] >= this.slider.maximum) { tickValues.pop(); }
-    if (this.slider.widthInPixels == 0) {
-      this.sliderContainer.onBeforeDrawObservable.addOnce(() => {
-        this.updateTicks(tickValues);
-      });
+    // Add ticks for 0 and slider.max if necessary
+    if (tickValues[0] > 0) {
+      tickValues.unshift(0);
     }
-    this.ticks = new Array();
-    for (let v of tickValues) {
-      let position = (this.slider.thumbWidthInPixels / 2) + (v / this.slider.maximum) * (this.slider.widthInPixels - this.slider.thumbWidthInPixels);
-      let t = new GUI.Line();
-      t.x1 = position;
-      t.x2 = position;
-      t.y1 = 0;
-      t.y2 = this.sliderContainer.heightInPixels;
-      t.lineWidth = 5;
-      t.color = "#99FF9999";
-      this.ticks.push(t);
-      this.sliderContainer.addControl(t);
+    if (tickValues[tickValues.length-1] < this.slider.maximum) {
+      tickValues.push(this.slider.maximum);
+    }
+    for (let i = 0; i < tickValues.length-1; i++) {
+      this.tickContainer.addColumnDefinition(tickValues[i+1] - tickValues[i]);
+      if (i%2==1) {
+        let r = new GUI.Rectangle();
+        r.width = '100%';
+        r.height = '100%';
+        r.background = '#55FF5566';
+        r.thickness = 0;
+        this.tickContainer.addControl(r,0,i);
+      }
     }
   }
 }
@@ -188,7 +197,7 @@ export function AddCycleSlider(s:SpinorScene) {
     }
   }, true);
   slider.listeners.push((v)=> {
-    s.shader.setTime(v * Math.PI * 2);
+    s.shader.time = v * Math.PI * 2;
   })
   s.gui.addControl(slider);
 }

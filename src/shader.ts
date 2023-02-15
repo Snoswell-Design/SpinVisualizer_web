@@ -6,10 +6,11 @@ const numKernels = 4;
 export class SpinorShader {
   stepSpeeds: Float32Array;
   stepPhases:Float32Array;
+  stepRotations:Float32Array;
   kernelWinds: Float32Array;
   kernelPhases: Float32Array;
   period: number;
-  time: number;
+  _time: number;
   radius: number;
   power: number;
   center: number;
@@ -20,9 +21,10 @@ export class SpinorShader {
   constructor(scene: BABYLON.Scene) {
     this.stepSpeeds = new Float32Array(numKernels+1);
     this.stepPhases = new Float32Array(numKernels+1);
+    this.stepRotations = new Float32Array(numKernels+1);
     this.kernelWinds = new Float32Array(numKernels);
     this.kernelPhases = new Float32Array(numKernels);
-    this.time = 0;
+    this._time = 0;
     this.period = 8;
     this.radius = 10;
     this.power = 1.5;
@@ -31,9 +33,8 @@ export class SpinorShader {
     this.braketChangeListeners = new Array();
 
     this.shader = new CustomMaterial("spinorMaterial", scene);
-    this.shader.AddUniform('time', 'float', 0);
     this.shader.AddUniform('numSteps', 'int', numKernels + 1);
-    this.shader.AddUniform('stepPhases', 'float[' + (numKernels + 1) + ']', null);
+    this.shader.AddUniform('stepRotations', 'float[' + (numKernels + 1) + ']', null);
     this.shader.AddUniform('kernelWinds', 'float[' + numKernels + ']', null);
     this.shader.AddUniform('kernelPhases', 'float[' + numKernels + ']', null);
     this.shader.AddUniform('radial_radius', 'float', 0);
@@ -75,21 +76,17 @@ export class SpinorShader {
         }
         mat4 rotation = mat4(1.0);
         for (int i = 0; i < numSteps; i++) {
-          rotation = rotation * rotXY(stepPhases[i]);
+          rotation = rotation * rotXY(stepRotations[i]);
           rotation = rotation * foldXY(r * PI * kernelWinds[i], kernelPhases[i]);
         }
-        rotation = rotation * rotXY(stepPhases[numSteps]);
+        rotation = rotation * rotXY(stepRotations[numSteps]);
         worldPos = worldPos * rotation;
         vNormalW = vec3(vec4(vNormalW, 1.0) * rotation);
     `);
 
     this.shader.onBindObservable.add(() => {
-      this.shader.getEffect().setFloat('time', this.time);
       this.shader.getEffect().setInt("numSteps", numKernels);
-
-      this.shader.getEffect().setFloatArray("stepSpeeds", this.stepSpeeds);
-      this.shader.getEffect().setFloatArray("stepPhases", this.stepPhases);
-
+      this.shader.getEffect().setFloatArray("stepRotations", this.stepRotations);
       this.shader.getEffect().setFloatArray("kernelWinds", this.kernelWinds);
       this.shader.getEffect().setFloatArray("kernelPhases", this.kernelPhases);
 
@@ -101,9 +98,9 @@ export class SpinorShader {
     scene.registerBeforeRender(() => {
       if (this.period > 0) {
         let delta = scene.getEngine().getDeltaTime() / 1000 * Math.PI * 2 / this.period;
-        this.time += delta;
+        this._time += delta;
         for (var i = 0; i <= numKernels; i++) {
-          this.stepPhases[i] += this.stepSpeeds[i] * delta;
+          this.stepRotations[i] += this.stepSpeeds[i] * delta;
         }
       }
     });
@@ -151,6 +148,7 @@ export class SpinorShader {
     }
     this.stepSpeeds[currentStep] = currentSpeed;
     this.spin = spin;
+    this.time = this._time; // Force update of stepRotations
     for (var listener of this.braketChangeListeners) {
       listener();
     }
@@ -163,10 +161,10 @@ export class SpinorShader {
     }
   }
 
-  setTime(t:number) {
-    this.time = t;
+  set time(t:number) {
+    this._time = t;
     for (var i = 0; i <= numKernels; i++) {
-      this.stepPhases[i] = this.stepSpeeds[i] * t;
+      this.stepRotations[i] = this.stepPhases[i] + this.stepSpeeds[i] * t;
     }
   }
 }

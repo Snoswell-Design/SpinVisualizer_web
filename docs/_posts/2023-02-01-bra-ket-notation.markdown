@@ -18,14 +18,12 @@ local-javascript-list:
     - Each matched pair of `<` and `>` *could* be at a different speed compared to the others.
     - Each `s` *could* be at a different angle.
 
-
 # Bra
 
 As spin is based on rotations we use left and right pointy brackets to denote some dynamic rotation in time and its opposite (inverse). For example, `<` left rotation, `>` right rotation.
 
-`These windows are interactive. Left click and drag to rotate view, scroll to zoom.`
-
-`If nothing is visible, switch browsers. Chrome is known to work.`
+> These windows are interactive. Left click and drag to rotate view, scroll to zoom.
+> If nothing is visible, switch browsers. Chrome, Edge and Brave are known to work.
 
 <canvas id="cbra1" touch-action="none" style="width:50%;float:left;"></canvas>
 <canvas id="cbra2" touch-action="none" style="width:50%;float:left;"></canvas>
@@ -79,6 +77,7 @@ As spin is based on rotations we use left and right pointy brackets to denote so
   SpinVisualizer.SpinorScene.LinkCameras(s1, s2);
 </script>
 
+&nbsp;
 # Ket
 
 We use a kernel function to describe a fold in space, `s`. This fold in space is on some plane that would cause a rotation to turn into its inverse. So a left rotation folded over, `<s`, would result in a right rotation `>` (in the center of the fold).
@@ -189,6 +188,7 @@ Note how folding a rotation over (`<` to `<s`) causes the rotation of the sphere
 
 </script>
 
+&nbsp;
 # Spin ½
 
 Continuing from above, cancelling the original rotation (`<s` to `<s>`) returns the outside to normal, but doubles the rotation speed of the sphere.
@@ -272,7 +272,7 @@ We can combine folds and rotations further to produce more complicated spinors. 
 
 Left: `<s>`, spin ½. Right: `<s>>s>`, spin ¼.
 
-`Tick marks on the slider show where the sphere has done one complete rotation.`
+> The sphere completes one revolution per colored section of the slider.
 
 <canvas id="chalf1" touch-action="none" style="width:50%;float:left;"></canvas>
 <canvas id="chalf2" touch-action="none" style="width:50%;float:left;"></canvas>
@@ -335,6 +335,7 @@ Left: `<s>`, spin ½. Right: `<s>>s>`, spin ¼.
   SpinVisualizer.SpinorScene.LinkCameras(s1, s2);
 </script>
 
+&nbsp;
 # Quaternions!?
 
 The simple spinor created with `<s>` matches the spinor others have sometimes illustrated and described by Paul Dirac as the Dirac spinor.
@@ -373,13 +374,14 @@ If we use a Quaternion algebra to describe a simple spinor the result is a littl
   });
 </script>
 
+&nbsp;
 # An infinite set...
 
 By combining the Bra and Ket functions we can generate an infinitely countable set of ever more complicated spinors classified by how many Kernel functions they have.
 
 Here is a list of the first four orders of the simple 2D spinors with their spin. Note that a spin of zero still encodes a real spinor.
 
-`(Click on a cell to change the visible spinor)`
+> (Click on a cell to change the visible spinor)
 
 <table id="braket_table"></table>
 <p>
