@@ -1,0 +1,41 @@
+---
+layout: post
+title:  "Spin"
+date:   2023-02-01 13:23:17 +1030
+categories: braket
+local-javascript-list:
+ - "/assets/js/main.bundle.js"
+---
+
+# Spin is important.
+- Spin is a property of electrons, protons and neutrons… everything material in our universe shares this basic property. 
+- Most of the energy of electrons, protons and neutrons is in their spin.  
+
+# Understanding spin.
+Unlike rotations that can be 2 dimentional, Spin alwoys has a volume and is based on rotations that change with distance from a center.
+
+# spinors - and spin 1/2
+Spinors are regions of space which are in constant spin. The spinor contains regions of different rotation at different radii. The simplest change in rotation is the reversal of a 2D rotation by turning it over. This means that the minimum difference in rotation is at least 2 rotations two per cycle. The mathematical descriptions of spin have focused on just the result of spin -- and if you look just at the result then a single rotation of one region is only half of the cycle... and so classical descriptions of spin say that one rotation does not get you back to where you start, and a second rotation is needed. We create the full volumetric spinor where you can see that in one cycle it's the difference between rotations that is a multiple of two. This view of the entire spinor intuitively shows you everything -- the difference in rotations at different radii and the reason why that difference must be two (or a multiple of two).
+
+# Three generations of space create 3 generation of spin.
+There are three types, or classes, of rotations. These are the simple rotations we are all familiar with, the precessions and the super-precessions. These classes of rotations match the rotational number systems that describe rotations -- historically they have the confusing names of Complex (rotations in at least 2D space), Quaternion (precessions in at least 3D space); Octonions (super-precessions in at least 4D space). It is unfortunate that the rotational numbers have been given meaningless names that reflect the way in which they were discovered historically and not their meanings. It is also unfortunate that Complex numbers are two dimensional and that they describe 2D rotations. This has led to the mistake of correlating the algebraic dimension of the rotational number with the spatial dimensions of the rotations they describe. SO, while Complex numbers are a two-dimensional algebraic number and describe 2 dimensional rotation the Quaternions are a four dimensional algebraic number that describes a 3D rotation which we call precession. The octonions are an eight-dimensional algebraic number that describes rotations in 4-dimensional space where there are 6 orthonormal planes. There is confusion here again because of the unfortunate matching of the number of orthonormal planes and dimensions in 3D space. This leads people to the incorrect intuition that there are 4 orthonormal planes in 4D space when there are in fact 6 orthonormal planes ... and for mathematical reasons best explained by Cohl Furey, there are only six degrees of 2D rotations that the Octionions describe and not seven.
+
+# Spin in words.
+- Spin is based on rotations spreading out in space.
+- Spin smoothly connects concentric regions that have different rotations.
+- Spin does not tangle, tear, or kink space – mathematically it is a smooth distortion.
+- Because spin connects concentric regions of space it has volume.
+- A continuing spin motion is called a spinor.
+
+
+# Spin only happens with rotation differences that are multiples of 2.
+- The rotations of the two regions differ by a multiple of 2 for one cycle of the spinor. 
+- If the difference is two rotations, then one rotation only goes halfway the spin is called spin ½. 
+- If the difference is four rotations, then one rotation only goes quarter way the spin is called spin ¼. 
+
+# Different types of spin.
+- There are three classes of rotations on which three classes of spin can be created.
+- Spin requires the ability to turn a rotation over so even the simplest spin based on 2d rotations requires at least three dimensions.
+- Spin can happen in three or more dimensions.
+- Spin based on 3D rotations requires, at least, four-dimensional space.
+- A spin based on the most complicated, 7D rotation, would require, at least, 5D space.
