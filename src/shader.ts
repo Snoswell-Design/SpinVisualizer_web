@@ -35,13 +35,16 @@ export class SpinorShader {
     this.shader = new CustomMaterial("spinorMaterial", scene);
     this.shader.AddUniform('numSteps', 'int', numKernels + 1);
     this.shader.AddUniform('stepRotations', 'float[' + (numKernels + 1) + ']', null);
+    this.shader.AddUniform('stepSpeeds', 'float[' + (numKernels + 1) + ']', null);
     this.shader.AddUniform('kernelWinds', 'float[' + numKernels + ']', null);
     this.shader.AddUniform('kernelPhases', 'float[' + numKernels + ']', null);
     this.shader.AddUniform('radial_radius', 'float', 0);
     this.shader.AddUniform('radial_power', 'float', 0);
     this.shader.AddUniform('radial_center', 'float', 0);
+    this.shader.AddAttribute('trail');
 
     this.shader.Vertex_Definitions(`
+      attribute float trail;
       mat4 rotXY(float a) {
             float c = cos(a);
             float s = sin(a);
@@ -76,7 +79,7 @@ export class SpinorShader {
         }
         mat4 rotation = mat4(1.0);
         for (int i = 0; i < numSteps; i++) {
-          rotation = rotation * rotXY(stepRotations[i]);
+          rotation = rotation * rotXY(stepRotations[i] + trail * stepSpeeds[i]);
           rotation = rotation * foldXY(r * PI * kernelWinds[i], kernelPhases[i]);
         }
         rotation = rotation * rotXY(stepRotations[numSteps]);
@@ -87,6 +90,7 @@ export class SpinorShader {
     this.shader.onBindObservable.add(() => {
       this.shader.getEffect().setInt("numSteps", numKernels);
       this.shader.getEffect().setFloatArray("stepRotations", this.stepRotations);
+      this.shader.getEffect().setFloatArray("stepSpeeds", this.stepSpeeds);
       this.shader.getEffect().setFloatArray("kernelWinds", this.kernelWinds);
       this.shader.getEffect().setFloatArray("kernelPhases", this.kernelPhases);
 

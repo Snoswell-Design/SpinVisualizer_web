@@ -7,6 +7,72 @@ local-javascript-list:
  - "/assets/js/main.bundle.js"
 ---
 
+ > `<s<s>>`, trail test
+
+<canvas id="ctest" touch-action="none" style="width:100%;"></canvas>
+<script type="module">
+  let s = new SpinVisualizer.SpinorScene("ctest", "<s<s>>", "{{ site.baseurl }}/assets");
+  s.shader.center = 1;
+
+  /*new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.ParticlePlaneRingHalf({
+      innerRadius:2,
+    }),
+    meshColor: new BABYLON.Color4(1,0,0,1),
+    rotation:new BABYLON.Vector3(0,0,Math.PI),
+  });*/
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Axis({
+      width:0.5,
+      half:true,
+    }),
+    meshColor: new BABYLON.Color4(0, 0, 1, 1),
+    rotation: new BABYLON.Vector3(0,Math.PI/2,0),
+    alpha:0.3,
+  });
+  new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Axis({
+      width:0.5,
+      half:true,
+    }),
+    meshColor: new BABYLON.Color4(0, 0, 1, 1),
+    rotation: new BABYLON.Vector3(0,Math.PI/2*3,0),
+  });
+
+  var sphere = new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.SphereRainbow(),
+    scale:0.95,
+    alpha:0.3,
+  });
+  var trail = new SpinVisualizer.MeshView({
+    mesh:SpinVisualizer.Trail({
+      numParticles: 500,
+      position: new BABYLON.Vector3(0, 0, 1),
+      normal: new BABYLON.Vector3(0, 0, 1),
+      backfaces: true,
+      size:0.1,
+    }),
+    meshColor: new BABYLON.Color4(0, 0, 1, 1),
+  });
+
+  s.makeGui();
+
+  var anim = new SpinVisualizer.ScrubAnimation(s);
+  anim.add(
+    [
+      [0,1],
+      [10,10],
+    ],
+    sphere, 'scale');
+  anim.add(
+    [
+      [0,1],
+      [10,10],
+    ],
+    trail, 'scale');
+
+</script>
+
 # Spin Visualizer introduction:
 In 2008 we developed a real-time spin visualization system for our own use. We did this to better understand spin of the fermions (electrons, protons and neutrons) with the goal of developing ways to tap spin energy. Now we can reliably produce anomalous energy from Cold Fusion reactors at low levels. On one occasion we even triggered the output of approximately 1KWh of excess energy with zero input – something we are working on understanding and reliably repeating.
 We are now making a web version of the spin visualizer available to everyone. It uses a new method we discovered that can generate full volumetric spin fields of any dimension or complexity. The infinitely countable set of spin types we can generate includes descriptions of spin used by mainstream science to describe the fermions.

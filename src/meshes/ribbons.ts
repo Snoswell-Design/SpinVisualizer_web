@@ -15,11 +15,13 @@ export function Axis(options: {
   lengthSegments?:number,
   widthSegments?:number,
   width?:number,
+  half?:boolean,
 }) : MeshDefinition {
   var {
     lengthSegments = 100,
     widthSegments = 5,
     width = 3,
+    half = false,
   } = options;
   var paths = new Array<Array<BABYLON.Vector3>>(widthSegments);
   for (var j = 0; j < widthSegments; j++) {
@@ -27,8 +29,14 @@ export function Axis(options: {
   }
   for (var i = 0; i < lengthSegments; i++) {
     for (var j = 0; j < widthSegments; j++) {
+      let x = i / (lengthSegments-1);
+      if (half) {
+        x = x * 10;
+      } else {
+        x = x * 20 - 10;
+      }
       paths[j][i] = new BABYLON.Vector3(
-        -10 + 20 * (i / (lengthSegments-1)),
+        x,
         -width/2 + width * (j / (widthSegments-1)),
         0,
       );

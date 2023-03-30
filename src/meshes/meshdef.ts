@@ -6,6 +6,7 @@ export type MeshDefinition = {
   vertexData:BABYLON.VertexData,
   hasRadius:boolean,
   defaultName:string,
+  trails?:Float32Array,
 };
 
 export class MeshView {
@@ -41,10 +42,16 @@ export class MeshView {
     this.prettyName = name;
     this.color = guiColor;
     this.mesh = new BABYLON.Mesh(name.toLowerCase().replace(' ', ''), scene.scene);
+    this.mesh.alwaysSelectAsActiveMesh = true;
     if (meshColor != null) {
       colorVertexData(mesh.vertexData, meshColor);
     }
     mesh.vertexData.applyToMesh(this.mesh);
+    if (mesh.trails != null) {
+      this.mesh.setVerticesData("trail", mesh.trails, false, 1);
+      console.log(this.mesh);
+      console.log("trails", this.mesh.getVerticesData("trail"));
+    }
     this.mesh.material = scene.shader.shader;
     this.mesh.isVisible = !startInvisible;
     this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
@@ -58,6 +65,10 @@ export class MeshView {
       this.mesh.visibility = alpha;
     }
     this.hasRadius = mesh.hasRadius;
+  }
+
+  set scale(value:number) {
+    this.mesh.scaling = new BABYLON.Vector3(value, value, value);
   }
 
 
@@ -134,4 +145,33 @@ export function cloneVertexData(vd:BABYLON.VertexData) : BABYLON.VertexData {
     v2.uvs = new Float32Array(vd.uvs);
   }
   return v2;
+}
+
+export function addBackfaces(vd:BABYLON.VertexData) {
+  var v2 = new BABYLON.VertexData();
+  v2.positions = vd.positions;
+  if (vd.colors) {
+    v2.colors = new Float32Array(vd.colors);
+  }
+  if (vd.uvs) {
+    v2.uvs = new Float32Array(vd.uvs);
+  }
+  // Flip indices
+  let indices = new Uint32Array(vd.indices.length);
+  for (let i = 0; i < vd.indices.length / 3; i++) {
+    indices[i*3+0] = vd.indices[i*3+0];
+    indices[i*3+1] = vd.indices[i*3+2];
+    indices[i*3+2] = vd.indices[i*3+1];
+  }
+  v2.indices = indices;
+  // Flip normals
+  let normals = new Float32Array(vd.normals.length);
+  for (let i = 0; i < vd.normals.length / 3; i++) {
+    let flip = new BABYLON.Vector3(vd.normals[i*3+0], vd.normals[i*3+1], vd.normals[i*3+2]).scale(-1);
+    normals[i*3+0] = flip.x;
+    normals[i*3+1] = flip.y;
+    normals[i*3+2] = flip.z;
+  }
+  v2.normals = normals;
+  vd.merge(v2);
 }
