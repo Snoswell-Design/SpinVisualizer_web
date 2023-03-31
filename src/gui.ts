@@ -1,7 +1,6 @@
 import * as BABYLON from 'babylonjs';
 import * as GUI from 'babylonjs-gui'
 import { SpinorScene } from './multiscene';
-import { SpinorShader } from './shader';
 
 export class PlaySlider extends GUI.Grid {
   playPause:GUI.Button;
@@ -177,29 +176,6 @@ export function TopSlider(
   headerPanel.addControl(s,0,1);
 
   return [headerPanel, s]
-}
-
-export function AddCycleSlider(s:SpinorScene) {
-  const slider = new PlaySlider(s, 0.01);
-  slider.maximum = 1;
-  slider.speed = 1/s.shader.period;
-  s.shader.period = 0;
-  s.shader.addListener(() => {
-    let revolutions = Math.abs(s.shader.spin);
-    if (s.shader.spin == 0) {
-      slider.updateTicks([]);
-    } else {
-      let ticks = new Array<number>(revolutions);
-      for (let i = 0; i < ticks.length; i++) {
-        ticks[i] = i / ticks.length;
-      }
-      slider.updateTicks(ticks);
-    }
-  }, true);
-  slider.listeners.push((v)=> {
-    s.shader.time = v * Math.PI * 2;
-  })
-  s.gui.addControl(slider);
 }
 
 function makeSliderControl(name: string): [GUI.StackPanel, GUI.Slider] {

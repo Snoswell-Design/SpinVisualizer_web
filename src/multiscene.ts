@@ -1,6 +1,5 @@
 import * as BABYLON from 'babylonjs';
 import { AdvancedDynamicTexture } from 'babylonjs-gui';
-import { SpinorShader } from './shader';
 
 var renderCanvas = document.createElement("canvas");
 export const engine = new BABYLON.Engine(renderCanvas, true);
@@ -13,14 +12,14 @@ export class SpinorScene {
   canvas: HTMLCanvasElement;
   view: BABYLON.EngineView;
   scene: BABYLON.Scene;
+  material: BABYLON.Material;
   camera: BABYLON.ArcRotateCamera;
-  shader: SpinorShader;
   light: BABYLON.HemisphericLight;
   linkedCameraScenes: Array<SpinorScene>;
   gui:AdvancedDynamicTexture;
   assetLocation:string;
 
-  constructor(canvas:HTMLCanvasElement|string, braket:string, assetLocation?:string) {
+  constructor(canvas:HTMLCanvasElement|string, assetLocation?:string) {
     if (typeof canvas == "string") {
       this.canvas = document.getElementById(canvas) as HTMLCanvasElement;
     } else {
@@ -38,9 +37,6 @@ export class SpinorScene {
     this.camera.lowerRadiusLimit = 2;
     this.camera.upperRadiusLimit = 30;
     this.camera.lockedTarget = BABYLON.Vector3.Zero();
-
-    this.shader = new SpinorShader(this.scene);
-    this.shader.parseBraKet(braket);
 
     this.light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1,1,0), this.scene);
 

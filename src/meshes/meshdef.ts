@@ -52,7 +52,7 @@ export class MeshView {
       console.log(this.mesh);
       console.log("trails", this.mesh.getVerticesData("trail"));
     }
-    this.mesh.material = scene.shader.shader;
+    this.mesh.material = scene.material;
     this.mesh.isVisible = !startInvisible;
     this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
     if (translation != null) {
@@ -70,7 +70,6 @@ export class MeshView {
   set scale(value:number) {
     this.mesh.scaling = new BABYLON.Vector3(value, value, value);
   }
-
 
   createControl() {
     let colorHex = this.color.toHexString(true);
