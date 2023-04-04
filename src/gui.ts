@@ -178,7 +178,7 @@ export function TopSlider(
   return [headerPanel, s]
 }
 
-function makeSliderControl(name: string): [GUI.StackPanel, GUI.Slider] {
+export function MakeSliderControl(name: string): [GUI.StackPanel, GUI.Slider] {
   let h = new GUI.TextBlock(name + '_label');
   h.text = name;
   h.height = '30px';
@@ -199,54 +199,4 @@ function makeSliderControl(name: string): [GUI.StackPanel, GUI.Slider] {
   headerPanel.addControl(s);
 
   return [headerPanel, s]
-}
-
-export function makeGUI(scene: BABYLON.Scene, shader: SpinorShader) {
-  //scene.debugLayer.show();
-  let gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-  //var meshClass = new Meshes();
-  //meshClass.material = shader.shader;
-
-  var panel = new GUI.StackPanel("Meshes");
-  panel.width = "200px";
-  panel.isVertical = true;
-  panel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-  panel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
-  panel.background = "#99999999";
-  gui.addControl(panel);
-
-  // shader controls
-
-  let shaderPanel = new GUI.StackPanel('shader_panel')
-  shaderPanel.isVertical = true;
-  shaderPanel.width = '100%'
-  shaderPanel.setPaddingInPixels(5);
-  shaderPanel.adaptHeightToChildren = true;
-
-  let [timeH, timeS] = makeSliderControl('Phase')
-  timeS.minimum = 0;
-  timeS.maximum = 1;
-  scene.registerAfterRender(() => {
-    timeS.value = (shader.time / Math.PI / 2) % 1;
-  });
-  timeS.onValueChangedObservable.add((time:number) => {
-    shader.time = time * Math.PI * 2;
-  });
-  shaderPanel.addControl(timeH);
-
-  let [speedH, speedS] = makeSliderControl('Cycle Time')
-  speedS.minimum = 0;
-  speedS.maximum = 5;
-  speedS.value = 1;
-  speedS.onValueChangedObservable.add((period:number) => {
-    shader.period = period;
-  });
-  shaderPanel.addControl(speedH);
-
-  panel.addControl(shaderPanel);
-
-  /*for (var meshView of meshClass.meshes) {
-    panel.addControl(meshView.createControl());
-  }*/
 }

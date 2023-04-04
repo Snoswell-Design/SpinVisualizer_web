@@ -4,7 +4,10 @@ title:  "Bra-Ket notation"
 date:   2023-02-01 21:23:17 +1030
 categories: braket
 local-javascript-list:
- - "/assets/js/main.bundle.js"
+ - "/assets/js/vendors.bundle.js"
+ - "/assets/js/runtime.bundle.js"
+ - "/assets/js/SpinVisualizer.bundle.js"
+ - "/assets/js/Braket.bundle.js"
 ---
 
 # Describing Spinors
@@ -30,7 +33,7 @@ As spin is based on rotations we use left and right pointy brackets to denote so
 
 <script type="module">
   function setup(s) {
-    s.shader.center = 3.5;
+    s.material.center = 3.5;
     new SpinVisualizer.MeshView({
       mesh:SpinVisualizer.ParticlePlaneRing({
         innerRadius:3,
@@ -44,7 +47,7 @@ As spin is based on rotations we use left and right pointy brackets to denote so
   }
 
   // <
-  var s1 = new SpinVisualizer.SpinorScene("cbra1", "<");
+  var s1 = new SpinVisualizer.SpinorScene("cbra1", Braket.New("<"));
   setup(s1);
 
   new SpinVisualizer.MeshView({
@@ -59,7 +62,7 @@ As spin is based on rotations we use left and right pointy brackets to denote so
   });
 
   // >
-  var s2 = new SpinVisualizer.SpinorScene("cbra2", ">");
+  var s2 = new SpinVisualizer.SpinorScene("cbra2", Braket.New(">"));
   setup(s2);
 
   new SpinVisualizer.MeshView({
@@ -84,8 +87,8 @@ We use a kernel function to describe a fold in space, `s`. This fold in space is
 
 <canvas id="cket" touch-action="none" style="width:100%;"></canvas>
 <script type="module">
-  let s = new SpinVisualizer.SpinorScene("cket", "s", "{{ site.baseurl }}/assets");
-  s.shader.center = 3.5;
+  let s = new SpinVisualizer.SpinorScene("cket", Braket.New("s"), "{{ site.baseurl }}/assets");
+  s.material.center = 3.5;
 
   new SpinVisualizer.MeshView({
     mesh:SpinVisualizer.ParticlePlaneRingHalf({
@@ -106,8 +109,6 @@ We use a kernel function to describe a fold in space, `s`. This fold in space is
     rotation: new BABYLON.Vector3(0,0,Math.PI/2),
   });
 
-  s.makeGui();
-
   var anim = new SpinVisualizer.ScrubAnimation(s);
   anim.add(
     [
@@ -115,7 +116,7 @@ We use a kernel function to describe a fold in space, `s`. This fold in space is
       [2,1],
       [3,1],
     ],
-    s.shader.kernelWinds, '0');
+    s.material.kernelWinds, '0');
 
 </script>
 
@@ -123,9 +124,9 @@ Note how folding a rotation over (`<` to `<s`) causes the rotation of the sphere
 
 <canvas id="creverse" touch-action="none" style="width:100%;"></canvas>
 <script type="module">
-  let s = new SpinVisualizer.SpinorScene("creverse", "<s", "{{ site.baseurl }}/assets");
-  s.shader.period = 2;
-  s.shader.center = 3.5;
+  let s = new SpinVisualizer.SpinorScene("creverse", Braket.New("<s"), "{{ site.baseurl }}/assets");
+  s.material.period = 2;
+  s.material.center = 3.5;
 
   new SpinVisualizer.MeshView({
     mesh:SpinVisualizer.ParticlePlaneRingHalf({
@@ -175,8 +176,6 @@ Note how folding a rotation over (`<` to `<s`) causes the rotation of the sphere
     meshColor: new BABYLON.Color4(0,0.9,0.5,1),
   });
 
-  s.makeGui();
-
   var anim = new SpinVisualizer.ScrubAnimation(s);
   anim.add(
     [
@@ -184,7 +183,7 @@ Note how folding a rotation over (`<` to `<s`) causes the rotation of the sphere
       [4,1],
       [7,1],
     ],
-    s.shader.kernelWinds, '0');
+    s.material.kernelWinds, '0');
 
 </script>
 
@@ -195,9 +194,9 @@ Continuing from above, cancelling the original rotation (`<s` to `<s>`) returns 
 
 <canvas id="creversedouble" touch-action="none" style="width:100%;"></canvas>
 <script type="module">
-  let s = new SpinVisualizer.SpinorScene("creversedouble", "<s>", "{{ site.baseurl }}/assets");
-  s.shader.period = 2;
-  s.shader.center = 3.5;
+  let s = new SpinVisualizer.SpinorScene("creversedouble", Braket.New("<s>"), "{{ site.baseurl }}/assets");
+  s.material.period = 2;
+  s.material.center = 3.5;
 
   new SpinVisualizer.MeshView({
     mesh:SpinVisualizer.ParticlePlaneRingHalf({
@@ -247,8 +246,6 @@ Continuing from above, cancelling the original rotation (`<s` to `<s>`) returns 
     meshColor: new BABYLON.Color4(0,0.9,0.5,1),
   });
 
-  s.makeGui();
-
   var anim = new SpinVisualizer.ScrubAnimation(s);
   anim.add(
     [
@@ -257,7 +254,7 @@ Continuing from above, cancelling the original rotation (`<s` to `<s>`) returns 
       [4,-1],
       [7,-1],
     ],
-    s.shader.stepSpeeds, '1');
+    s.material.stepSpeeds, '1');
   document.anim = anim;
 
 </script>
@@ -279,7 +276,7 @@ Left: `<s>`, spin ½. Right: `<s>>s>`, spin ¼.
 
 <script type="module">
   function setup(s) {
-    s.shader.center = 3.5;
+    s.material.center = 3.5;
     new SpinVisualizer.MeshView({
       mesh:SpinVisualizer.ParticlePlaneRing({
         innerRadius:3,
@@ -300,9 +297,8 @@ Left: `<s>`, spin ½. Right: `<s>>s>`, spin ¼.
     });
   }
 
-  var s1 = new SpinVisualizer.SpinorScene("chalf1", "<s>", "{{ site.baseurl }}/assets");
-  s1.makeGui();
-  SpinVisualizer.AddCycleSlider(s1);
+  var s1 = new SpinVisualizer.SpinorScene("chalf1", Braket.New("<s>"), "{{ site.baseurl }}/assets");
+  Braket.AddCycleSlider(s1);
   setup(s1);
 
   new SpinVisualizer.MeshView({
@@ -316,9 +312,8 @@ Left: `<s>`, spin ½. Right: `<s>>s>`, spin ¼.
     meshColor: new BABYLON.Color4(0,0.5,0.9,1),
   });
 
-  var s2 = new SpinVisualizer.SpinorScene("chalf2", "<s>>s<", "{{ site.baseurl }}/assets");
-  s2.makeGui();
-  SpinVisualizer.AddCycleSlider(s2);
+  var s2 = new SpinVisualizer.SpinorScene("chalf2", Braket.New("<s>>s<"), "{{ site.baseurl }}/assets");
+  Braket.AddCycleSlider(s2);
   setup(s2);
 
   new SpinVisualizer.MeshView({
@@ -343,8 +338,8 @@ If we use a Quaternion algebra to describe a simple spinor the result is a littl
 
 <canvas id="cquat" touch-action="none" style="width:100%"></canvas>
 <script type="module">
-  var s = new SpinVisualizer.SpinorScene("cquat", "<<s>s>", "{{ site.baseurl }}/assets");
-  s.shader.center = 3.5;
+  var s = new SpinVisualizer.SpinorScene("cquat", Braket.New("<<s>s>"), "{{ site.baseurl }}/assets");
+  s.material.center = 3.5;
   new SpinVisualizer.MeshView({
     mesh:SpinVisualizer.ParticlePlaneRing({
       innerRadius:2,
@@ -403,10 +398,9 @@ Here is a list of the first four orders of the simple 2D spinors with their spin
     ["<s<<s>s>>>s<","<s<<s<s>>s>>","<s<<<s>s>s>>",],
 ];
 
-  var s = new SpinVisualizer.SpinorScene("spinorlist", "<s>", "{{ site.baseurl }}/assets");
-  s.makeGui();
-  SpinVisualizer.AddCycleSlider(s);
-  s.shader.center = 3.5;
+  var s = new SpinVisualizer.SpinorScene("spinorlist", Braket.New("<s>"), "{{ site.baseurl }}/assets");
+  Braket.AddCycleSlider(s);
+  s.material.center = 3.5;
   new SpinVisualizer.MeshView({
     mesh:SpinVisualizer.ParticlePlaneRing({
       innerRadius:2,
@@ -439,23 +433,23 @@ Here is a list of the first four orders of the simple 2D spinors with their spin
 
   for (let i = 0; i < brakets.length; i++) {
     for (let j = 0; j < brakets[i].length; j++) {
-      s.shader.parseBraKet(brakets[i][j]);
+      s.material.parseBraKet(brakets[i][j]);
       let spinText = '';
-      if (s.shader.spin == 0) {
+      if (s.material.spin == 0) {
         spinText = '0';
-      } else if (s.shader.spin < 0) {
-        spinText = "-" + SpinVisualizer.HTML.makeFraction(1,Math.abs(s.shader.spin));
+      } else if (s.material.spin < 0) {
+        spinText = "-" + SpinVisualizer.HTML.makeFraction(1,Math.abs(s.material.spin));
       } else {
-        spinText = SpinVisualizer.HTML.makeFraction(1,Math.abs(s.shader.spin));
+        spinText = SpinVisualizer.HTML.makeFraction(1,Math.abs(s.material.spin));
       }
       brakets[i][j] += " (" + spinText + ")"
     }
   }
-  s.shader.parseBraKet(brakets[0][0]);
+  s.material.parseBraKet(brakets[0][0]);
 
   function changeSpinor(cell) {
     cell = cell.split(" ")[0];
-    s.shader.parseBraKet(cell);
+    s.material.parseBraKet(cell);
   }
 
 

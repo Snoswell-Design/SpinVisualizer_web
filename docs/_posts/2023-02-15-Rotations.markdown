@@ -3,8 +3,6 @@ layout: post
 title:  "Rotations"
 date:   2023-02-01 13:23:17 +1030
 categories: braket
-local-javascript-list:
- - "/assets/js/main.bundle.js"
 ---
 
 # Spin and rotations    

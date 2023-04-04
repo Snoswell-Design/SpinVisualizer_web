@@ -8,6 +8,8 @@ var attachedScene:SpinorScene;
 
 export var latestScene: SpinorScene;
 
+export type MaterialFactory = (s:BABYLON.Scene) => BABYLON.Material;
+
 export class SpinorScene {
   canvas: HTMLCanvasElement;
   view: BABYLON.EngineView;
@@ -16,10 +18,10 @@ export class SpinorScene {
   camera: BABYLON.ArcRotateCamera;
   light: BABYLON.HemisphericLight;
   linkedCameraScenes: Array<SpinorScene>;
-  gui:AdvancedDynamicTexture;
+  private _gui:AdvancedDynamicTexture;
   assetLocation:string;
 
-  constructor(canvas:HTMLCanvasElement|string, assetLocation?:string) {
+  constructor(canvas:HTMLCanvasElement|string, materialFactory:MaterialFactory, assetLocation?:string) {
     if (typeof canvas == "string") {
       this.canvas = document.getElementById(canvas) as HTMLCanvasElement;
     } else {
@@ -29,6 +31,7 @@ export class SpinorScene {
     
     this.scene = new BABYLON.Scene(engine);
     this.scene.clearColor = new BABYLON.Color4(0.8,0.8,0.8,1);
+    this.material = materialFactory(this.scene);
 
     this.camera = new BABYLON.ArcRotateCamera("Camera", Math.PI/4, Math.PI/4, 20, BABYLON.Vector3.Zero(), this.scene);
     this.camera.attachControl(this.canvas, true);
@@ -78,8 +81,11 @@ export class SpinorScene {
     this.linkedCameraScenes = new Array<SpinorScene>();
   }
 
-  makeGui() {
-    this.gui = AdvancedDynamicTexture.CreateFullscreenUI("UI",true,this.scene);
+  public get gui() : AdvancedDynamicTexture {
+    if (this._gui == null) {
+      this._gui = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
+    }
+    return this._gui;
   }
 
   static LinkCameras(...scenes:SpinorScene[]) {

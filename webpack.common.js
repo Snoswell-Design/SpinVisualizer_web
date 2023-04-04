@@ -1,13 +1,16 @@
 const path = require("path");
 
 module.exports = {
-  entry: './src/main.ts',
+  entry: {
+    SpinVisualizer: './src/main.ts',
+    Braket: './src/warps/braket/main.ts',
+  },
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'docs/assets/js'),
     globalObject: 'this',
     library: {
-      name: 'SpinVisualizer',
+      name: '[name]',
       type: 'umd',
     },
   },

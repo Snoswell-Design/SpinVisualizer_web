@@ -1,7 +1,16 @@
 import * as BABYLON from 'babylonjs';
 import { CustomMaterial } from 'babylonjs-materials';
+import { MaterialFactory } from '../../multiscene';
 
 const numKernels = 4;
+
+export function New(braket:string):MaterialFactory {
+  return (s:BABYLON.Scene) => {
+    let m = new BraketMaterial(s);
+    m.parseBraKet(braket);
+    return m;
+  };
+}
 
 export class BraketMaterial extends CustomMaterial {
   stepSpeeds: Float32Array;
