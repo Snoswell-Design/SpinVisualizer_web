@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>From Planar Rotation to Chirality by Motion</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --panel:#fffaf0; --ink:#1c2430; --muted:#667085;
+    --accent:#1d78c1; --accent2:#18a875; --warn:#b56d18; --line:#d9d3c7;
+    --shadow:0 12px 32px rgba(24,30,40,.14);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  body{overflow:hidden}
+  .app{display:grid;grid-template-rows:auto 1fr;height:100vh;width:100vw}
+  header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 18px;border-bottom:1px solid var(--line);background:rgba(255,250,240,.92);backdrop-filter:blur(10px);z-index:5}
+  .brand{display:flex;align-items:baseline;gap:12px;min-width:320px}
+  .brand h1{font-size:18px;line-height:1.1;margin:0;font-weight:760;letter-spacing:-.02em}
+  .brand .sub{font-size:12px;color:var(--muted);white-space:nowrap}
+  nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;flex:1}
+  nav button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;font-size:12px;color:#344054;white-space:nowrap;cursor:pointer}
+  nav button.active{background:#172033;color:white;border-color:#172033}
+  main{display:grid;grid-template-columns:minmax(520px,1.35fr) minmax(360px,.65fr);min-height:0}
+  .stageWrap{position:relative;min-height:0;background:radial-gradient(circle at 50% 40%, #ffffff 0%, #efe9dc 58%, #ddd2bf 100%)}
+  canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+  canvas:active{cursor:grabbing}
+  .hud{position:absolute;left:16px;bottom:16px;display:flex;gap:8px;flex-wrap:wrap;max-width:70%}
+  .pill{background:rgba(255,250,240,.86);border:1px solid rgba(160,150,132,.45);box-shadow:0 4px 18px rgba(30,30,30,.08);border-radius:999px;padding:7px 10px;font-size:12px;color:#344054}
+  .panel{background:var(--panel);border-left:1px solid var(--line);box-shadow:var(--shadow);overflow:auto;padding:18px 20px 26px}
+  .panel h2{font-size:24px;line-height:1.1;margin:0 0 8px;letter-spacing:-.03em}
+  .eyebrow{text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-size:11px;font-weight:800;margin-bottom:8px}
+  .panel p{font-size:15px;line-height:1.52;margin:0 0 12px;color:#273244}
+  .callout{border-left:4px solid var(--accent);padding:10px 12px;background:#eef7ff;border-radius:10px;margin:14px 0;color:#18324f}
+  .math{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#151a24;color:#ecf4ff;border-radius:12px;padding:12px;margin:14px 0;white-space:pre-wrap;font-size:13px;line-height:1.45;display:none}
+  .math.show{display:block}
+  .controls{display:grid;grid-template-columns:1fr;gap:11px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  .controlRow{display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:10px;font-size:12px;color:#475467}
+  .controlRow input[type=range]{width:100%}
+  .buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .buttons button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:13px;cursor:pointer;color:#344054}
+  .buttons button.on{background:#172033;color:#fff;border-color:#172033}
+  .chapterList{display:grid;gap:8px;margin:14px 0}
+  .chapterList div{display:flex;gap:8px;align-items:flex-start;padding:9px 10px;background:#fff;border:1px solid var(--line);border-radius:12px;font-size:13px;color:#344054}
+  .chapterList b{min-width:22px;color:#172033}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+  .legend .item{display:flex;align-items:center;gap:8px;font-size:12px;color:#475467}
+  .sw{width:14px;height:14px;border-radius:50%}.blue{background:#1d78c1}.green{background:#18a875}.orange{background:#d99022}.red{background:#d44343}
+  @media (max-width:900px){body{overflow:auto}.app{height:auto;min-height:100vh}main{grid-template-columns:1fr}.stageWrap{height:58vh}.panel{border-left:0;border-top:1px solid var(--line)}header{align-items:flex-start;flex-direction:column}.brand{min-width:0;display:block}.brand .sub{white-space:normal}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>From Planar Rotation to Chirality by Motion</h1>
+      <div class="sub">S-spinor applet prototype</div>
+    </div>
+    <nav id="tabs"></nav>
+  </header>
+  <main>
+    <section class="stageWrap">
+      <canvas id="stage"></canvas>
+      <div class="hud" id="hud"></div>
+    </section>
+    <aside class="panel">
+      <div class="eyebrow" id="eyebrow"></div>
+      <h2 id="title"></h2>
+      <div id="body"></div>
+      <div id="math" class="math"></div>
+      <div class="controls">
+        <div class="controlRow"><label>Velocity</label><input id="velocity" type="range" min="0" max="1" step="0.01" value="0.65"><span id="velocityVal">0.65</span></div>
+        <div class="controlRow"><label>Flip right</label><input id="flip" type="range" min="0" max="1" step="0.01" value="0"><span id="flipVal">0.00</span></div>
+        <div class="controlRow"><label>Rotating frame</label><input id="frameBlend" type="range" min="0" max="1" step="0.01" value="0"><span id="frameBlendVal">0.00</span></div>
+        <div class="buttons">
+          <button id="playBtn" class="on">Pause</button>
+          <button id="trailBtn" class="on">Trails</button>
+          <button id="labelBtn" class="on">Labels</button>
+          <button id="mathBtn">Math</button>
+          <button id="resetBtn">Reset camera</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+<script>
+(() => {
+  'use strict';
+  const TAU = Math.PI * 2;
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const tabsEl = document.getElementById('tabs');
+  const titleEl = document.getElementById('title');
+  const eyebrowEl = document.getElementById('eyebrow');
+  const bodyEl = document.getElementById('body');
+  const mathEl = document.getElementById('math');
+  const hudEl = document.getElementById('hud');
+  const controls = {
+    velocity: document.getElementById('velocity'),
+    flip: document.getElementById('flip'),
+    frameBlend: document.getElementById('frameBlend'),
+    play: document.getElementById('playBtn'),
+    trail: document.getElementById('trailBtn'),
+    label: document.getElementById('labelBtn'),
+    math: document.getElementById('mathBtn'),
+    reset: document.getElementById('resetBtn')
+  };
+
+  const chapters = [
+    {
+      short:'2D chirality',
+      title:'2D rotation and chirality',
+      eyebrow:'Chapter 1',
+      body:`<p>We are all familiar with rotation. Here we begin with the simplest case: rotation confined to a plane.</p>
+      <p>If we were confined to a 2D universe, clockwise and counter-clockwise rotation would appear as a mirror pair. In 3D, however, the two sides of the plane are accessible. One rotation can be flipped over to match the other.</p>
+      <div class="callout"><b>Key idea:</b> a planar rotation is not yet an intrinsically chiral 3D object. Add motion along the rotation axis and the swept path becomes a helix. The two opposite rotations then become a left- and right-handed chiral pair.</div>
+      <p>Use <b>Velocity</b> to grow the helical trails. Use <b>Flip right</b> to turn the right-hand disk over through 3D.</p>`,
+      math:`circle:      x = r cos(ωt), y = r sin(ωt)
+opposite:    x = r cos(ωt), y = -r sin(ωt)
+helix:       x = r cos(ωt), y = r sin(ωt), z = vt
+
+The helix has a screw sense. Its mirror image cannot be obtained by ordinary 3D rotation.`
+    },
+    {
+      short:'Algebras',
+      title:'Rotations and the normed division algebras',
+      eyebrow:'Chapter 2',
+      body:`<p>Even when a 3D object such as a sphere rotates, any chosen probe point traces a circle in a plane for simple rotation. Nutation and precession are different: the probe point moves over a spherical surface rather than remaining on one planar circle.</p>
+      <p>This chapter introduces a distinction that will matter later: the dimension of an algebra is not the same thing as the dimension of the object being described.</p>
+      <div class="callout"><b>Working language:</b> complex numbers can be read here as 2D rotational numbers, while quaternions describe 3D rotational structure. The applet keeps this visual and provisional.</div>`,
+      math:`Normed division algebras:
+R  : 1 real dimension
+C  : 1 real + 1 rotational / imaginary axis
+H  : 1 real + 3 rotational / imaginary axes
+O  : 1 real + 7 rotational / imaginary axes
+
+Never confuse algebraic dimension with the dimension of the space being described.`
+    },
+    {
+      short:'Spin ½',
+      title:'Relative rotations lead to spin 1/2',
+      eyebrow:'Chapter 3',
+      body:`<p>When two opposite rotations are compared, the relative angle advances twice as fast. Each arrow can rotate through 180° in the world frame while the relative relation has already swept through 360°.</p>
+      <p>It takes the second half of the cycle for the pair to return to the same starting alignment in the same direction. This gives a visual route to spin-half behavior.</p>
+      <div class="callout"><b>Try this:</b> move the <b>Rotating frame</b> slider toward 1. The display blends from the external reference frame to the perspective of one rotating vector.</div>`,
+      math:`left angle:      θL =  ωt
+right angle:     θR = -ωt
+relative angle:  Δθ = θL - θR = 2ωt
+
+One full relative cycle occurs while each input rotates only halfway through the external frame cycle.`
+    },
+    {
+      short:'Space warps',
+      title:'Spinors as space warps',
+      eyebrow:'Chapter 4',
+      body:`<p>This page is a simplified placeholder for the Bra-Ket spinor demonstrations. The purpose here is to connect the relative-rotation idea to a spatial fold.</p>
+      <p>In the S-spinor notation, brackets indicate opposite rotational tendencies and <b>s</b> represents a fold or kernel in space that turns one rotational relation into another. A simple <b>&lt;s&gt;</b> object shows spin-half behavior as a relationship between an inner result and the surrounding space.</p>
+      <div class="callout"><b>Prototype status:</b> this scene is intentionally schematic. It marks where the existing Bra-Ket visual language should be integrated once this applet direction is approved.</div>`,
+      math:`primitive:     <    or    >
+fold:          s
+simple pair:   <s>
+
+Interpretation in this research program:
+spin is shown as a relation between local rotation and surrounding spatial deformation.`
+    },
+    {short:'S parts',title:'S spinors made from simple parts',eyebrow:'Coming chapter',body:`<p>Placeholder page for the next scripted chapter. This will assemble primitive rotations and folds into a compact visual grammar.</p>`,math:`planned: primitives + folds + relative phase + embedding frame`},
+    {short:'Weyl',title:'Weyl spinors as space warps',eyebrow:'Coming chapter',body:`<p>Placeholder page for the Weyl interpretation. This should show how propagated left and right primitive modes acquire chirality and how that chirality aligns visually with helicity for Weyl-like propagation.</p>`,math:`helicity sign ∝ S · p
+For massless Weyl modes, chirality and helicity align.`},
+    {short:'Dirac',title:'Dirac spinors as space warps',eyebrow:'Coming chapter',body:`<p>Placeholder page for the Dirac interpretation. This should combine left and right Weyl-like sectors into a composite object embedded in a stationary R3 reference frame.</p>`,math:`Dirac-like composite ≈ left Weyl component + right Weyl component`},
+    {short:'Electron',title:'Orbiting Dirac spinor space warps as stable electrons',eyebrow:'Coming chapter',body:`<p>Placeholder page for the electron-stability visual model. This should remain separate until the earlier geometric demonstrations are visually clear and stable.</p>`,math:`planned: orbiting composite source + stationary embedding + field response`}
+  ];
+
+  const state = {
+    chapter:0, t:0, last:performance.now(), paused:false, showTrails:true, showLabels:true, showMath:false,
+    velocity:0.65, flip:0, frameBlend:0, yaw:-0.62, pitch:0.55, zoom:1.0, dragging:false, lastX:0, lastY:0,
+    dpr:1, w:800, h:600
+  };
+
+  function esc(s){return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+  chapters.forEach((c,i)=>{ const b=document.createElement('button'); b.textContent=(i+1)+'. '+c.short; b.onclick=()=>setChapter(i); tabsEl.appendChild(b); });
+  const tabButtons = [...tabsEl.querySelectorAll('button')];
+  function setChapter(i){state.chapter=i; tabButtons.forEach((b,j)=>b.classList.toggle('active',i===j)); const c=chapters[i]; titleEl.textContent=c.title; eyebrowEl.textContent=c.eyebrow; bodyEl.innerHTML=c.body; mathEl.textContent=c.math || ''; mathEl.classList.toggle('show',state.showMath); updateHud();}
+
+  function resize(){
+    state.dpr = Math.min(2, window.devicePixelRatio || 1);
+    const r = canvas.getBoundingClientRect(); state.w = Math.max(300, r.width); state.h = Math.max(260, r.height);
+    canvas.width = Math.round(state.w * state.dpr); canvas.height = Math.round(state.h * state.dpr);
+    ctx.setTransform(state.dpr,0,0,state.dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+
+  function v(x,y,z){return {x,y,z};}
+  function add(a,b){return v(a.x+b.x,a.y+b.y,a.z+b.z)}
+  function sub(a,b){return v(a.x-b.x,a.y-b.y,a.z-b.z)}
+  function mul(a,s){return v(a.x*s,a.y*s,a.z*s)}
+  function len(a){return Math.hypot(a.x,a.y,a.z)}
+  function norm(a){const l=len(a)||1; return mul(a,1/l)}
+  function rx(p,a){const c=Math.cos(a),s=Math.sin(a); return v(p.x, p.y*c-p.z*s, p.y*s+p.z*c)}
+  function ry(p,a){const c=Math.cos(a),s=Math.sin(a); return v(p.x*c+p.z*s, p.y, -p.x*s+p.z*c)}
+  function rz(p,a){const c=Math.cos(a),s=Math.sin(a); return v(p.x*c-p.y*s, p.x*s+p.y*c, p.z)}
+  function camera(p){
+    let q = p;
+    q = ry(q, state.yaw);
+    q = rx(q, state.pitch);
+    const d = 7.5, scale = Math.min(state.w,state.h)*0.19*state.zoom;
+    const k = d/(d+q.z);
+    return {x:state.w/2 + q.x*scale*k, y:state.h/2 - q.y*scale*k, z:q.z, k};
+  }
+  function line3(a,b,color='#222',lw=2,alpha=1){const A=camera(a), B=camera(b); ctx.globalAlpha=alpha; ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.stroke(); ctx.globalAlpha=1;}
+  function text3(p,txt,color='#172033',size=13,align='center'){const P=camera(p); ctx.fillStyle=color; ctx.font=`700 ${size}px Inter, sans-serif`; ctx.textAlign=align; ctx.textBaseline='middle'; ctx.fillText(txt,P.x,P.y);}
+  function poly3(points, fill, stroke, lw=1, alpha=1){const ps=points.map(camera); ctx.globalAlpha=alpha; ctx.beginPath(); ps.forEach((p,i)=> i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();} ctx.globalAlpha=1;}
+  function circle3(center, radius, color, lw=2, alpha=1, transform=(p)=>p, seg=120){let prev=null; for(let i=0;i<=seg;i++){const a=TAU*i/seg; const p=add(center, transform(v(Math.cos(a)*radius, Math.sin(a)*radius,0))); if(prev) line3(prev,p,color,lw,alpha); prev=p;}}
+  function disc3(center, radius, fill, stroke, transform=(p)=>p){const pts=[]; for(let i=0;i<96;i++){const a=TAU*i/96; pts.push(add(center, transform(v(Math.cos(a)*radius, Math.sin(a)*radius,0))));} poly3(pts,fill,stroke,1.25,.72);}
+  function arrowHead3(tip, dir, color, scale=.18){const n=norm(dir); const side=norm(v(-n.y,n.x,0)); const back=add(tip,mul(n,-scale)); line3(add(back,mul(side,scale*.55)), tip, color, 2.2); line3(add(back,mul(side,-scale*.55)), tip, color, 2.2);}
+  function arrow3(a,b,color,lw=3){line3(a,b,color,lw); arrowHead3(b, sub(b,a), color, .22);}
+  function arcArrow(center,r,sense,color,transform=(p)=>p, phase=0){
+    const start=phase+.35*sense, end=phase+sense*(TAU-0.55), steps=90; let prev=null, last=null, before=null;
+    for(let i=0;i<=steps;i++){const u=i/steps; const a=start+(end-start)*u; const p=add(center, transform(v(Math.cos(a)*r,Math.sin(a)*r,0))); if(prev) line3(prev,p,color,3,.9); before=prev; prev=p; last=p;}
+    if(before && last) arrowHead3(last, sub(last,before), color, .22);
+  }
+  function gridPlane(z=0, size=4, step=1, alpha=.22){for(let i=-size;i<=size;i+=step){line3(v(-size,i,z),v(size,i,z),'#897f70',1,alpha);line3(v(i,-size,z),v(i,size,z),'#897f70',1,alpha)}}
+  function axes(len=3){arrow3(v(0,0,0),v(len,0,0),'#c94141',2);arrow3(v(0,0,0),v(0,len,0),'#269b61',2);arrow3(v(0,0,0),v(0,0,len),'#2b76c2',2); if(state.showLabels){text3(v(len+.25,0,0),'x','#c94141');text3(v(0,len+.25,0),'y','#269b61');text3(v(0,0,len+.25),'z','#2b76c2');}}
+  function sphere(center,r,color='#1d78c1',alpha=.4){
+    circle3(center,r,color,1.2,alpha,p=>p,96); circle3(center,r,color,1.2,alpha,p=>rx(p,Math.PI/2),96); circle3(center,r,color,1.2,alpha,p=>ry(p,Math.PI/2),96);
+  }
+  function helix(center, r, sense, color, velocity, phase, length=4.2){
+    const loops=2.1 + velocity*1.8, seg=260, z0=-length/2, z1=length/2;
+    let prev=null;
+    for(let i=0;i<=seg;i++){const u=i/seg; const a=sense*(u*loops*TAU)+phase; const p=v(center.x+r*Math.cos(a), center.y+r*Math.sin(a), z0+(z1-z0)*u); if(prev) line3(prev,p,color,2.2,.82); prev=p;}
+    arrow3(v(center.x,center.y,z1+.15),v(center.x,center.y,z1+.85),'#172033',2);
+  }
+
+  function drawDiskPair(showHelix=true){
+    gridPlane(-.02,4,1,.14); axes(2.4);
+    const phase = state.t; const centers=[v(-1.65,0,0),v(1.65,0,0)]; const colors=['#1d78c1','#18a875'];
+    const senses=[1,-1];
+    centers.forEach((c,idx)=>{
+      const flip = idx===1 ? state.flip*Math.PI : 0;
+      const tf = p => rx(p, flip);
+      const color=colors[idx], sense=senses[idx];
+      disc3(c,1.0,idx===0?'rgba(29,120,193,.13)':'rgba(24,168,117,.13)',color,tf);
+      circle3(c,1.0,color,2.2,.85,tf);
+      arcArrow(c,1.14,sense,color,tf,idx===0?.1:.1);
+      const a = sense*phase;
+      const tip = add(c, tf(v(Math.cos(a)*.86, Math.sin(a)*.86, 0)));
+      arrow3(c,tip,color,3);
+      const dot = add(c, tf(v(1.23,0,0)));
+      const P=camera(dot); ctx.fillStyle='#d44343'; ctx.beginPath(); ctx.arc(P.x,P.y,5,0,TAU);ctx.fill();
+      if(state.showLabels){text3(add(c,tf(v(0,-1.5,0))), idx===0?'2D view: edge moves right':'2D view: edge moves left', color, 12); text3(add(c,v(0,1.45,0)), idx===0?'clockwise pair view':'counter-clockwise pair view', color, 13);}
+      if(showHelix && state.showTrails && state.velocity>.03) helix(add(c,v(0,0,0)),.46,sense,color,state.velocity,phase,.7+3.8*state.velocity);
+    });
+    if(state.showLabels && state.velocity>.1){text3(v(-1.65,-1.9,1.9),'right-handed / left-handed depends on view convention','#1d78c1',12); text3(v(1.65,-1.9,1.9),'mirror helix pair','#18a875',12);}
+  }
+
+  function drawChapter0(){ drawDiskPair(true); }
+  function drawChapter1(){
+    gridPlane(-1.25,4,1,.12); axes(2.3);
+    const phase=state.t;
+    sphere(v(-1.65,0,0),.95,'#1d78c1',.5); sphere(v(1.65,0,0),.95,'#18a875',.5);
+    [-1.65,1.65].forEach((x,idx)=>{
+      const sense=idx? -1:1; const color=idx?'#18a875':'#1d78c1';
+      circle3(v(x,0,0),.9,color,2,.65,p=>p);
+      const probe=v(x+.9*Math.cos(sense*phase),.9*Math.sin(sense*phase),0);
+      arrow3(v(x,0,0),probe,color,2.5);
+      const P=camera(probe);ctx.fillStyle=color;ctx.beginPath();ctx.arc(P.x,P.y,6,0,TAU);ctx.fill();
+      if(state.showTrails) circle3(v(x,0,0),.9,color,1.4,.35,p=>p);
+    });
+    const c=v(0,0,0); sphere(c,1.12,'#d99022',.45);
+    let prev=null;
+    for(let i=0;i<220;i++){const u=i/219, a=u*TAU*2.2+phase*.55; const p=v(Math.cos(a)*Math.sin(.55+u*1.8)*1.08, Math.sin(a)*Math.sin(.55+u*1.8)*1.08, Math.cos(.55+u*1.8)*1.08); if(prev) line3(prev,p,'#d99022',2,.65); prev=p;}
+    const np=v(Math.cos(phase*.9)*Math.sin(.8+Math.sin(phase*.4)*.55)*1.08, Math.sin(phase*.9)*Math.sin(.8+Math.sin(phase*.4)*.55)*1.08, Math.cos(.8+Math.sin(phase*.4)*.55)*1.08);
+    arrow3(c,np,'#d99022',3);
+    if(state.showLabels){text3(v(-1.65,1.4,0),'simple 2D rotation','#1d78c1');text3(v(1.65,1.4,0),'opposite 2D rotation','#18a875');text3(v(0,-1.55,0),'nutation/precession: point leaves one plane','#b56d18');}
+    drawAlgebraBadges();
+  }
+  function drawAlgebraBadges(){
+    const x=24,y=24, rows=[['R','1D magnitude'],['C','2D rotational number'],['H','3D rotation algebra'],['O','7 rotational axes']];
+    ctx.save(); ctx.font='12px Inter, sans-serif'; rows.forEach((r,i)=>{ctx.fillStyle='rgba(255,250,240,.84)'; roundRect(x,y+i*32,210,25,8,true,false); ctx.fillStyle='#172033';ctx.font='800 13px Inter';ctx.fillText(r[0],x+12,y+i*32+17);ctx.font='12px Inter';ctx.fillStyle='#475467';ctx.fillText(r[1],x+44,y+i*32+17);}); ctx.restore();
+  }
+  function roundRect(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);if(fill)ctx.fill();if(stroke)ctx.stroke();}
+  function drawChapter2(){
+    gridPlane(-.02,4,1,.11); axes(2.2);
+    const p=state.t; const blend=state.frameBlend; const left=p*(1-blend); const right=-p - p*blend; const rel=2*p;
+    const centers=[v(-2.2,0,0),v(2.2,0,0),v(0,0,0)];
+    circle3(centers[0],.9,'#1d78c1',2,.9); circle3(centers[1],.9,'#18a875',2,.9); circle3(centers[2],1.1,'#172033',2,.5);
+    arrow3(centers[0],add(centers[0],v(.85*Math.cos(left),.85*Math.sin(left),0)),'#1d78c1',3);
+    arrow3(centers[1],add(centers[1],v(.85*Math.cos(right),.85*Math.sin(right),0)),'#18a875',3);
+    arrow3(centers[2],add(centers[2],v(1.05*Math.cos(rel),1.05*Math.sin(rel),0)),'#d99022',3.5);
+    if(state.showTrails){circle3(centers[2],.65,'#d99022',1,.35); helix(v(0,-2.15,0),.32,1,'#d99022',.5,rel,2.8);}
+    if(state.showLabels){text3(v(-2.2,1.35,0),'left input θ','#1d78c1');text3(v(2.2,1.35,0),'right input -θ','#18a875');text3(v(0,1.55,0),'relative angle 2θ','#d99022');}
+    drawGauge(rel);
+  }
+  function drawGauge(rel){
+    const x=state.w-230,y=26,w=190,h=58; ctx.save(); ctx.fillStyle='rgba(255,250,240,.86)'; roundRect(x,y,w,h,12,true,false); ctx.fillStyle='#172033';ctx.font='800 12px Inter';ctx.fillText('Relative cycle',x+14,y+20); ctx.fillStyle='#d99022'; const frac=((rel/TAU)%2+2)%2/2; roundRect(x+14,y+34,w-28,8,4,false,true); ctx.fillRect(x+14,y+34,(w-28)*frac,8); ctx.fillStyle='#667085';ctx.font='11px Inter';ctx.fillText(Math.round(frac*720)+'° / 720°',x+14,y+55); ctx.restore();
+  }
+  function drawChapter3(){
+    gridPlane(-1.1,4,1,.13); axes(2.7);
+    const phase=state.t;
+    sphere(v(0,0,0),.8,'#b48fff',.45);
+    // warp rings
+    for(let j=0;j<8;j++){
+      const rr=.55+j*.27; const amp=.16*Math.exp(-j*.2); let prev=null;
+      for(let i=0;i<=160;i++){const a=TAU*i/160; const z=amp*Math.sin(2*a+phase*1.7)*(1-j/10); const p=v(rr*Math.cos(a),rr*Math.sin(a),z); if(prev) line3(prev,p,j<3?'#1d78c1':'#18a875',1.6,.55); prev=p;}
+    }
+    arcArrow(v(0,0,0),1.05,1,'#1d78c1',p=>p,phase*.4);
+    arcArrow(v(0,0,0),2.0,-1,'#18a875',p=>p,-phase*.2);
+    const a=phase*2; arrow3(v(0,0,0),v(.7*Math.cos(a),.7*Math.sin(a),0),'#d44343',3);
+    if(state.showLabels){text3(v(-2.1,1.65,.2),'< rotation','#1d78c1');text3(v(2.1,1.65,.2),'> inverse rotation','#18a875');text3(v(0,-1.75,.35),'s fold / spatial kernel','#b56d18');text3(v(0,0,1.45),'<s> schematic spin-half relation','#172033');}
+  }
+  function drawPlaceholder(){
+    gridPlane(-.4,4,1,.1); axes(2.5); const phase=state.t; const n=state.chapter-3;
+    for(let k=0;k<5;k++){const r=.55+k*.38; let prev=null; for(let i=0;i<=120;i++){const a=TAU*i/120; const p=v(r*Math.cos(a+phase*.08*k), r*Math.sin(a+phase*.11*k), .45*Math.sin(a*n+phase*.7)/(k+1)); if(prev) line3(prev,p,k%2?'#18a875':'#1d78c1',1.8,.58); prev=p;}}
+    sphere(v(0,0,0),.72,'#d99022',.32); text3(v(0,0,1.7),'chapter scaffold: visual design pending','#172033',14);
+  }
+
+  function draw(){
+    const now=performance.now(); const dt=Math.min(.05,(now-state.last)/1000); state.last=now; if(!state.paused) state.t += dt*1.35;
+    ctx.clearRect(0,0,state.w,state.h);
+    const grad=ctx.createRadialGradient(state.w*.5,state.h*.38,40,state.w*.5,state.h*.45,Math.max(state.w,state.h)*.7); grad.addColorStop(0,'#fffdf8');grad.addColorStop(1,'#ddd2bf'); ctx.fillStyle=grad; ctx.fillRect(0,0,state.w,state.h);
+    if(state.chapter===0) drawChapter0(); else if(state.chapter===1) drawChapter1(); else if(state.chapter===2) drawChapter2(); else if(state.chapter===3) drawChapter3(); else drawPlaceholder();
+    requestAnimationFrame(draw);
+  }
+
+  function updateHud(){
+    const items=[];
+    items.push(`camera: drag to rotate, wheel to zoom`);
+    if(state.chapter===0) items.push(`velocity turns circles into helices`, `flip shows 3D non-chirality of planar rotation`);
+    if(state.chapter===2) items.push(`relative angle = 2θ`, `frame blend = ${state.frameBlend.toFixed(2)}`);
+    if(state.chapter>=4) items.push(`placeholder scaffold`);
+    hudEl.innerHTML=items.map(s=>`<div class="pill">${esc(s)}</div>`).join('');
+  }
+
+  function setControl(name, value){state[name]=value; const el=document.getElementById(name+'Val'); if(el) el.textContent=Number(value).toFixed(2); if(name==='frameBlend') updateHud();}
+  ['velocity','flip','frameBlend'].forEach(id=>controls[id].addEventListener('input', e=>setControl(id, Number(e.target.value))));
+  controls.play.onclick=()=>{state.paused=!state.paused; controls.play.textContent=state.paused?'Play':'Pause'; controls.play.classList.toggle('on',!state.paused)};
+  controls.trail.onclick=()=>{state.showTrails=!state.showTrails; controls.trail.classList.toggle('on',state.showTrails)};
+  controls.label.onclick=()=>{state.showLabels=!state.showLabels; controls.label.classList.toggle('on',state.showLabels)};
+  controls.math.onclick=()=>{state.showMath=!state.showMath; controls.math.classList.toggle('on',state.showMath); mathEl.classList.toggle('show',state.showMath)};
+  controls.reset.onclick=()=>{state.yaw=-.62;state.pitch=.55;state.zoom=1};
+  canvas.addEventListener('pointerdown',e=>{state.dragging=true;state.lastX=e.clientX;state.lastY=e.clientY;canvas.setPointerCapture(e.pointerId)});
+  canvas.addEventListener('pointermove',e=>{if(!state.dragging)return; const dx=e.clientX-state.lastX,dy=e.clientY-state.lastY; state.lastX=e.clientX;state.lastY=e.clientY; state.yaw+=dx*.008;state.pitch+=dy*.008; state.pitch=Math.max(-1.45,Math.min(1.45,state.pitch));});
+  canvas.addEventListener('pointerup',e=>{state.dragging=false; try{canvas.releasePointerCapture(e.pointerId)}catch(_){}});
+  canvas.addEventListener('wheel',e=>{e.preventDefault(); state.zoom*=Math.exp(-e.deltaY*.001); state.zoom=Math.max(.55,Math.min(2.2,state.zoom));},{passive:false});
+  window.addEventListener('keydown',e=>{if(e.key===' '){controls.play.click(); e.preventDefault();} if(e.key==='ArrowRight') setChapter(Math.min(chapters.length-1,state.chapter+1)); if(e.key==='ArrowLeft') setChapter(Math.max(0,state.chapter-1));});
+
+  resize(); setChapter(0); draw();
+})();
+</script>
+</body>
+</html>
